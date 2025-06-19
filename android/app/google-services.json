@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "721091898914",
+    "project_id": "watch-party-d4610",
+    "storage_bucket": "watch-party-d4610.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721091898914:android:ccf8a073070592a477647b",
+        "android_client_info": {
+          "package_name": "com.example.watchparty"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsbZEleJgtrXzuRTzcPTfV99lJF4kqjQE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

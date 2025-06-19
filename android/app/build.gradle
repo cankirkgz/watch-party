@@ -1,0 +1,54 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    id "com.google.gms.google-services" // ✅ Firebase için gerekli
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.watchparty" // 🔁 Firebase'deki package name ile birebir aynı olmalı
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    defaultConfig {
+        applicationId = "com.example.watchparty" // 🔁 Firebase'e verdiğinle birebir aynı
+        minSdk = 21
+        targetSdk = flutter.targetSdkVersion
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    buildTypes {
+        release {
+            // İstersen release imzası ekleyebilirsin
+            signingConfig = signingConfigs.debug
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+
+dependencies {
+    // ✅ Firebase BoM (sürüm uyumsuzluklarını önler)
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
+
+    // ✅ Kullandığın Firebase ürünlerini buraya ekle (örnek olarak analytics)
+    implementation 'com.google.firebase:firebase-analytics'
+
+    // Eğer Firestore da kullanıyorsan:
+    // implementation 'com.google.firebase:firebase-firestore'
+
+    // Eğer Authentication da ekleyeceksen:
+    // implementation 'com.google.firebase:firebase-auth'
+}
+
+flutter {
+    source = "../.."
+}
