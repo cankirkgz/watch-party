@@ -26,22 +26,18 @@ class ChatPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF2A2A2A)),
       ),
-      constraints: BoxConstraints(
-        maxHeight:
-            MediaQuery.of(context).size.height * 0.5, // Maksimum yükseklik ekle
-      ),
       child: Column(
         children: [
           // Chat header
           _buildChatHeader(),
           const Divider(height: 1, color: Color(0xFF2A2A2A)),
-          // Chat messages - Expanded ile sarmala
+          // Chat messages
           Expanded(
             child: _buildMessagesList(),
           ),
           const Divider(height: 1, color: Color(0xFF2A2A2A)),
           // Chat input area
-          _buildInputArea(),
+          _buildInputArea(context),
         ],
       ),
     );
@@ -49,44 +45,40 @@ class ChatPanel extends StatelessWidget {
 
   Widget _buildMessagesList() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return SingleChildScrollView(
+          return ListView.builder(
             controller: scrollController,
-            reverse: messages.isEmpty,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: constraints.maxHeight,
-                maxHeight: double.infinity, // Maksimum yükseklik kaldırıldı
-              ),
-              child: Column(
-                mainAxisAlignment: messages.isEmpty
-                    ? MainAxisAlignment.center
-                    : MainAxisAlignment.start,
-                children: [
-                  if (messages.isEmpty)
-                    const Text(
+            reverse: false,
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(top: 8, bottom: 8),
+            itemCount: messages.isEmpty ? 1 : messages.length,
+            itemBuilder: (context, index) {
+              if (messages.isEmpty) {
+                return const SizedBox(
+                  height: 100,
+                  child: Center(
+                    child: Text(
                       'No messages yet',
                       style: TextStyle(
                         color: Colors.white54,
                         fontSize: 14,
                       ),
-                    )
-                  else
-                    ...messages, // ListView yerine doğrudan children kullanıldı
-                ],
-              ),
-            ),
+                    ),
+                  ),
+                );
+              }
+              return messages[index];
+            },
           );
         },
       ),
     );
   }
 
-  Widget _buildInputArea() {
-    return Container(
-      height: 90,
+  Widget _buildInputArea(BuildContext context) {
+    return Padding(
       padding: const EdgeInsets.all(12),
       child: ChatInputBar(
         controller: controller,

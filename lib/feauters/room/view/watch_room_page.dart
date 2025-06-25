@@ -165,100 +165,119 @@ class _WatchRoomPageState extends State<WatchRoomPage>
               const SizedBox(width: 12),
             ],
           ),
-          body: Column(
-            children: [
-              // Video player - AspectRatio ekleyerek taşmayı önle
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: YoutubePlayer(controller: _controller),
-              ),
+          resizeToAvoidBottomInset: true,
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: Column(
+                    children: [
+                      // Video player
+                      AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: YoutubePlayer(controller: _controller),
+                      ),
 
-              // Play/Pause button
-              IconButton(
-                padding: EdgeInsets.zero,
-                iconSize: 35,
-                icon: Icon(_isPlaying
-                    ? Icons.pause_circle_filled
-                    : Icons.play_circle_fill),
-                onPressed: () async {
-                  setState(() => _isLocalAction = true);
-                  if (_isPlaying) {
-                    _controller.pause();
-                  } else {
-                    _controller.play();
-                  }
-                  await _viewModel.setPlaybackState(
-                    roomId: widget.roomId,
-                    isPlaying: !_isPlaying,
-                    currentTime:
-                        _controller.value.position.inSeconds.toDouble(),
-                  );
-                  // küçük bir gecikmeyle yerel eylemi kapat
-                  Future.delayed(const Duration(milliseconds: 100),
-                      () => setState(() => _isLocalAction = false));
-                },
-              ),
-
-              // Slider with timestamps
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Text(_formatDuration(_position)),
-                    Expanded(
-                      child: Slider(
-                        min: 0,
-                        max: _duration.inSeconds.toDouble(),
-                        value: _position.inSeconds
-                            .toDouble()
-                            .clamp(0, _duration.inSeconds.toDouble()),
-                        onChanged: (v) {
-                          setState(
-                              () => _position = Duration(seconds: v.toInt()));
-                        },
-                        onChangeEnd: (v) {
-                          // 3️⃣ debounce: kullanıcı hemen birkaç kez sürükleyebilir
-                          _isLocalAction = true;
-                          _controller.seekTo(Duration(seconds: v.toInt()));
-                          _viewModel
-                              .setPlaybackState(
+                      // Play/Pause button
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        iconSize: 35,
+                        icon: Icon(_isPlaying
+                            ? Icons.pause_circle_filled
+                            : Icons.play_circle_fill),
+                        onPressed: () async {
+                          setState(() => _isLocalAction = true);
+                          if (_isPlaying) {
+                            _controller.pause();
+                          } else {
+                            _controller.play();
+                          }
+                          await _viewModel.setPlaybackState(
                             roomId: widget.roomId,
-                            isPlaying: _isPlaying,
-                            currentTime: v,
-                          )
-                              .whenComplete(() {
-                            Future.delayed(const Duration(milliseconds: 100),
-                                () => setState(() => _isLocalAction = false));
-                          });
+                            isPlaying: !_isPlaying,
+                            currentTime:
+                                _controller.value.position.inSeconds.toDouble(),
+                          );
+                          Future.delayed(const Duration(milliseconds: 100),
+                              () => setState(() => _isLocalAction = false));
                         },
                       ),
-                    ),
-                    Text(_formatDuration(_duration)),
-                  ],
-                ),
-              ),
 
-              const Divider(),
+                      // Slider with timestamps
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          children: [
+                            Text(_formatDuration(_position)),
+                            Expanded(
+                              child: Slider(
+                                min: 0,
+                                max: _duration.inSeconds.toDouble(),
+                                value: _position.inSeconds
+                                    .toDouble()
+                                    .clamp(0, _duration.inSeconds.toDouble()),
+                                onChanged: (v) {
+                                  setState(() =>
+                                      _position = Duration(seconds: v.toInt()));
+                                },
+                                onChangeEnd: (v) {
+                                  _isLocalAction = true;
+                                  _controller
+                                      .seekTo(Duration(seconds: v.toInt()));
+                                  _viewModel
+                                      .setPlaybackState(
+                                    roomId: widget.roomId,
+                                    isPlaying: _isPlaying,
+                                    currentTime: v,
+                                  )
+                                      .whenComplete(() {
+                                    Future.delayed(
+                                        const Duration(milliseconds: 100),
+                                        () => setState(
+                                            () => _isLocalAction = false));
+                                  });
+                                },
+                              ),
+                            ),
+                            Text(_formatDuration(_duration)),
+                          ],
+                        ),
+                      ),
 
-              // Chat panel - Expanded ile sarmalayarak kalan alanı kaplamasını sağla
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: ChatPanel(
-                    messages: const [
-                      ChatMessageBubble(
-                          username: 'Alice', time: '00:10', message: 'Hey! 👋'),
-                      ChatMessageBubble(
-                          username: 'Bob', time: '00:15', message: 'Hi there!'),
+                      const Divider(),
+
+                      // Chat panel - Sabit yükseklik veriyoruz
+                      SizedBox(
+                        height: constraints.maxHeight *
+                            0.4, // Ekranın %40'ı kadar yer kaplasın
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: ChatPanel(
+                            messages: const [
+                              ChatMessageBubble(
+                                  username: 'Alice',
+                                  time: '00:10',
+                                  message: 'Hey! 👋'),
+                              ChatMessageBubble(
+                                  username: 'Bob',
+                                  time: '00:15',
+                                  message: 'Hi there!'),
+                            ],
+                            controller: _chatController,
+                            onSend: (msg) {
+                              // TODO: implement sending chat message
+                            },
+                          ),
+                        ),
+                      ),
                     ],
-                    controller: _chatController,
-                    onSend: (msg) {
-                      // TODO: implement sending chat message
-                    },
                   ),
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
