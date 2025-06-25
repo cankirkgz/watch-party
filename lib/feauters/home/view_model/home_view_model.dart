@@ -48,4 +48,13 @@ class HomeViewModel extends Cubit<HomeViewState> {
       emit(HomeViewError("Bir hata oluştu: $e"));
     }
   }
+
+  Future<void> updateRoomCurrentTime(String roomId, double currentTime) async {
+    try {
+      await _creatorService.updateRoomCurrentTime(
+          roomId: roomId, currentTime: currentTime);
+    } catch (e) {
+      // Hata yönetimi eklenebilir
+    }
+  }
 }

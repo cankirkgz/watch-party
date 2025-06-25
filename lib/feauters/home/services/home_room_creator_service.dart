@@ -23,6 +23,9 @@ class HomeRoomCreatorService {
       createdAt: DateTime.now(),
       isPlaying: false,
       currentTime: 0,
+      videoHour: 0,
+      videoMinute: 0,
+      videoSecond: 0,
     );
 
     await firestoreService.setDocument(
@@ -46,5 +49,26 @@ class HomeRoomCreatorService {
     if (data == null) return null;
 
     return (RoomModel.fromMap(roomId, data));
+  }
+
+  Future<void> updateRoomCurrentTime({
+    required String roomId,
+    required double currentTime,
+  }) async {
+    final int totalSec = currentTime.toInt();
+    final int hours = totalSec ~/ 3600;
+    final int minutes = (totalSec % 3600) ~/ 60;
+    final int seconds = totalSec % 60;
+
+    await firestoreService.updateDocument(
+      collection: 'rooms',
+      docId: roomId,
+      data: {
+        'currentTime': currentTime,
+        'videoHour': hours,
+        'videoMinute': minutes,
+        'videoSecond': seconds,
+      },
+    );
   }
 }

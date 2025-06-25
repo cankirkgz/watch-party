@@ -7,12 +7,14 @@ class YoutubeVideoPlayer extends StatefulWidget {
   final String videoId;
   final Duration currentPosition;
   final Duration totalDuration;
+  final void Function(Duration position)? onPositionChanged;
 
   const YoutubeVideoPlayer({
     super.key,
     required this.videoId,
     required this.currentPosition,
     required this.totalDuration,
+    this.onPositionChanged,
   });
 
   @override
@@ -39,10 +41,19 @@ class _YoutubeVideoPlayerState extends State<YoutubeVideoPlayer> {
 
     /// Eğer bir başlangıç zamanı belirlemek istersen:
     _controller.seekTo(widget.currentPosition);
+
+    _controller.addListener(_positionListener);
+  }
+
+  void _positionListener() {
+    if (widget.onPositionChanged != null) {
+      widget.onPositionChanged!(_controller.value.position);
+    }
   }
 
   @override
   void dispose() {
+    _controller.removeListener(_positionListener);
     _controller.dispose();
     super.dispose();
   }

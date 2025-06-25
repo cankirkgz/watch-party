@@ -17,4 +17,19 @@ class FirestoreService {
   }) async {
     return await _firestore.collection(collection).doc(docId).get();
   }
+
+  Future<void> updateDocument({
+    required String collection,
+    required String docId,
+    required Map<String, dynamic> data,
+  }) async {
+    await _firestore.collection(collection).doc(docId).update(data);
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> documentStream({
+    required String collection,
+    required String docId,
+  }) {
+    return _firestore.collection(collection).doc(docId).snapshots();
+  }
 }

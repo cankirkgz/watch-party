@@ -26,13 +26,19 @@ class ChatPanel extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFF2A2A2A)),
       ),
+      constraints: BoxConstraints(
+        maxHeight:
+            MediaQuery.of(context).size.height * 0.5, // Maksimum yükseklik ekle
+      ),
       child: Column(
         children: [
           // Chat header
           _buildChatHeader(),
           const Divider(height: 1, color: Color(0xFF2A2A2A)),
-          // Chat messages
-          _buildMessagesList(),
+          // Chat messages - Expanded ile sarmala
+          Expanded(
+            child: _buildMessagesList(),
+          ),
           const Divider(height: 1, color: Color(0xFF2A2A2A)),
           // Chat input area
           _buildInputArea(),
@@ -41,45 +47,8 @@ class ChatPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildChatHeader() {
-    return SizedBox(
-      height: 60,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              const Text(
-                'Live Chat',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(left: 8),
-                  child: SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildMessagesList() {
-    return Container(
-      height: 250,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -87,7 +56,10 @@ class ChatPanel extends StatelessWidget {
             controller: scrollController,
             reverse: messages.isEmpty,
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+                maxHeight: double.infinity, // Maksimum yükseklik kaldırıldı
+              ),
               child: Column(
                 mainAxisAlignment: messages.isEmpty
                     ? MainAxisAlignment.center
@@ -102,12 +74,7 @@ class ChatPanel extends StatelessWidget {
                       ),
                     )
                   else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) => messages[index],
-                    ),
+                    ...messages, // ListView yerine doğrudan children kullanıldı
                 ],
               ),
             ),
@@ -124,6 +91,25 @@ class ChatPanel extends StatelessWidget {
       child: ChatInputBar(
         controller: controller,
         onSend: onSend,
+      ),
+    );
+  }
+
+  Widget _buildChatHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: const [
+          Text(
+            'Chat',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
       ),
     );
   }
