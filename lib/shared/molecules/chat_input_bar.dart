@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:watchparty/shared/atoms/chat_input_field.dart';
 import 'package:watchparty/shared/atoms/send_icon_button.dart';
+import 'package:watchparty/shared/atoms/mic_icon_button.dart';
 
 class ChatInputBar extends StatelessWidget {
   final TextEditingController? controller;
   final ValueChanged<String> onSend;
+  final VoidCallback? onMicPressed;
 
-  const ChatInputBar({super.key, this.controller, required this.onSend});
+  const ChatInputBar(
+      {super.key, this.controller, required this.onSend, this.onMicPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +19,10 @@ class ChatInputBar extends StatelessWidget {
           child: ChatInputField(
             controller: controller ?? TextEditingController(),
           ),
+        ),
+        SizedBox(width: 10),
+        MicIconButton(
+          onPressed: onMicPressed ?? () {},
         ),
         SizedBox(width: 10),
         SendIconButton(

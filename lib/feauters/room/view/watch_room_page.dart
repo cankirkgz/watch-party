@@ -7,8 +7,11 @@ import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:watchparty/services/firestore_service.dart';
 import 'package:watchparty/shared/atoms/viewer_count_badge.dart';
 import 'package:watchparty/shared/organisms/chat_panel.dart';
-import 'package:watchparty/shared/molecules/chat_message_bubble.dart';
 import 'package:watchparty/services/user_prefs_service.dart';
+import 'package:watchparty/services/message_service.dart';
+import 'package:watchparty/models/message_model.dart';
+import 'package:watchparty/services/user_service.dart';
+import 'package:watchparty/shared/molecules/chat_message_bubble.dart';
 
 class WatchRoomPage extends StatefulWidget {
   final String roomId;
@@ -89,7 +92,7 @@ class _WatchRoomPageState extends State<WatchRoomPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _removeSelfFromParticipants();
-    _controller.removeListener(_onVideoPlayerUpdate); // ✅ unutma
+    _controller.removeListener(_onVideoPlayerUpdate);
     _controller.dispose();
     _viewModel.close();
     _chatController.dispose();
@@ -110,6 +113,12 @@ class _WatchRoomPageState extends State<WatchRoomPage>
     final min = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final sec = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$min:$sec';
+  }
+
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour.toString().padLeft(2, '0');
+    final min = dt.minute.toString().padLeft(2, '0');
+    return '$hour:$min';
   }
 
   @override
@@ -255,20 +264,43 @@ class _WatchRoomPageState extends State<WatchRoomPage>
                             0.4, // Ekranın %40'ı kadar yer kaplasın
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: ChatPanel(
-                            messages: const [
-                              ChatMessageBubble(
-                                  username: 'Alice',
-                                  time: '00:10',
-                                  message: 'Hey! 👋'),
-                              ChatMessageBubble(
-                                  username: 'Bob',
-                                  time: '00:15',
-                                  message: 'Hi there!'),
-                            ],
-                            controller: _chatController,
-                            onSend: (msg) {
-                              // TODO: implement sending chat message
+                          child: StreamBuilder<List<MessageModel>>(
+                            stream: MessageService()
+                                .getMessagesStream(widget.roomId),
+                            builder: (context, snapshot) {
+                              final messages = snapshot.data ?? [];
+                              final chatBubbles = messages
+                                  .map((msg) => ChatMessageBubble(
+                                        username: msg.senderName,
+                                        time: _formatTime(msg.sentAt),
+                                        message: msg.text,
+                                      ))
+                                  .toList();
+                              return ChatPanel(
+                                messages: chatBubbles,
+                                controller: _chatController,
+                                onSend: (text) async {
+                                  if (text.trim().isEmpty) return;
+                                  final userId = await UserPrefsService
+                                      .getOrCreateUserId();
+                                  String userName = "";
+                                  try {
+                                    final user =
+                                        await UserService().getUserById(userId);
+                                    userName = user?.name ?? "Anonim";
+                                  } catch (_) {
+                                    userName = "Anonim";
+                                  }
+                                  final message = MessageModel(
+                                    text: text,
+                                    senderId: userId,
+                                    senderName: userName,
+                                    sentAt: DateTime.now(),
+                                    roomId: widget.roomId,
+                                  );
+                                  await MessageService().sendMessage(message);
+                                },
+                              );
                             },
                           ),
                         ),
