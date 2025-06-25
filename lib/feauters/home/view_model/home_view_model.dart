@@ -16,7 +16,7 @@ class HomeViewModel extends Cubit<HomeViewState> {
         _roomService = roomService,
         super(HomeViewInitial());
 
-  Future<void> createRoom(String youtubeUrl) async {
+  Future<void> createRoom(String youtubeUrl, String userId) async {
     emit(HomeViewLoading());
 
     try {
@@ -27,7 +27,11 @@ class HomeViewModel extends Cubit<HomeViewState> {
         return;
       }
 
-      final roomId = await _creatorService.createRoom(videoId: videoId);
+      final roomId = await _creatorService.createRoom(
+        videoId: videoId,
+        createdBy: userId,
+        participants: [userId],
+      );
       emit(HomeViewSuccess(roomId: roomId, videoId: videoId));
     } catch (e) {
       emit(HomeViewError("Something went wrong: $e"));

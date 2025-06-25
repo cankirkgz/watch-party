@@ -25,8 +25,28 @@ class RoomService {
       data: {
         'currentTime': currentTime,
         'isPlaying': isPlaying,
-        // Burayı client zamanı yerine Firestore’un serverTimestamp()’ı ile değiştir
+        // Burayı client zamanı yerine Firestore'un serverTimestamp()'ı ile değiştir
         'lastUpdatedAt': FieldValue.serverTimestamp(),
+      },
+    );
+  }
+
+  Future<void> addParticipant(String roomId, String userId) async {
+    await _fs.updateDocument(
+      collection: 'rooms',
+      docId: roomId,
+      data: {
+        'participants': FieldValue.arrayUnion([userId]),
+      },
+    );
+  }
+
+  Future<void> removeParticipant(String roomId, String userId) async {
+    await _fs.updateDocument(
+      collection: 'rooms',
+      docId: roomId,
+      data: {
+        'participants': FieldValue.arrayRemove([userId]),
       },
     );
   }

@@ -14,7 +14,11 @@ class HomeRoomCreatorService {
 
   const HomeRoomCreatorService({required this.firestoreService});
 
-  Future<String> createRoom({required String videoId}) async {
+  Future<String> createRoom({
+    required String videoId,
+    required String createdBy,
+    required List<String> participants,
+  }) async {
     final roomId = generateRoomCode();
 
     final room = RoomModel(
@@ -26,6 +30,8 @@ class HomeRoomCreatorService {
       videoHour: 0,
       videoMinute: 0,
       videoSecond: 0,
+      createdBy: createdBy,
+      participants: participants,
     );
 
     await firestoreService.setDocument(

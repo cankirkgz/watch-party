@@ -6,9 +6,12 @@ import 'package:watchparty/feauters/home/view_model/home_view_model.dart';
 import 'package:watchparty/shared/atoms/animated_play_button.dart';
 import 'package:watchparty/shared/molecules/feature_item.dart';
 import 'package:watchparty/shared/molecules/room_actions_panel.dart';
+import 'package:watchparty/services/user_service.dart';
+import 'package:watchparty/services/user_prefs_service.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String userId;
+  const HomePage({super.key, required this.userId});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -46,10 +49,19 @@ class _HomePageState extends State<HomePage> {
 
             /// 🎥 Create Room
             BlocConsumer<HomeViewModel, HomeViewState>(
-              listener: (context, state) {
+              listener: (context, state) async {
                 if (state is HomeViewSuccess) {
-                  context.pushReplacement(
-                      '/room-created/${state.roomId}?videoId=${state.videoId}');
+                  final userId = widget.userId;
+                  final user = await UserService().getUserById(userId);
+                  if (user != null &&
+                      user.name != null &&
+                      user.name!.isNotEmpty) {
+                    context.pushReplacement(
+                        '/room/${state.roomId}?videoId=${state.videoId}&name=${user.name}&mode=create');
+                  } else {
+                    context.pushReplacement(
+                        '/enter-name?roomId=${state.roomId}&videoId=${state.videoId}&mode=create');
+                  }
                 } else if (state is HomeViewError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.message)),
@@ -59,12 +71,14 @@ class _HomePageState extends State<HomePage> {
               builder: (context, state) {
                 return RoomActionsPanel(
                   controller: _youtubeLinkController,
-                  isCreateMode: true,
+                  mode: RoomActionMode.create,
                   isLoading: state is HomeViewLoading,
                   onPressed: () {
                     final link = _youtubeLinkController.text.trim();
                     if (isValidYoutubeUrl(link)) {
-                      context.read<HomeViewModel>().createRoom(link);
+                      context
+                          .read<HomeViewModel>()
+                          .createRoom(link, widget.userId);
                     }
                   },
                 );
@@ -77,7 +91,7 @@ class _HomePageState extends State<HomePage> {
               builder: (context, state) {
                 return RoomActionsPanel(
                   controller: _roomCodeController,
-                  isCreateMode: false,
+                  mode: RoomActionMode.join,
                   isLoading: state is HomeViewLoading,
                   onPressed: () {
                     final code = _roomCodeController.text.trim();
@@ -92,10 +106,19 @@ class _HomePageState extends State<HomePage> {
                   },
                 );
               },
-              listener: (context, state) {
+              listener: (context, state) async {
                 if (state is HomeViewSuccess) {
-                  context.pushReplacement(
-                      '/room/${state.roomId}?videoId=${state.videoId}');
+                  final userId = widget.userId;
+                  final user = await UserService().getUserById(userId);
+                  if (user != null &&
+                      user.name != null &&
+                      user.name!.isNotEmpty) {
+                    context.pushReplacement(
+                        '/room/${state.roomId}?videoId=${state.videoId}&name=${user.name}&mode=join');
+                  } else {
+                    context.pushReplacement(
+                        '/enter-name?roomId=${state.roomId}&videoId=${state.videoId}&mode=join');
+                  }
                 } else if (state is HomeViewError) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(state.message)),

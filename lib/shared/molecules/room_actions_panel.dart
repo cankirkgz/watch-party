@@ -2,18 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:watchparty/core/utils/youtube_utils.dart';
 import 'package:watchparty/shared/atoms/app_button.dart';
 
+// Yeni bir enum ekliyorum
+enum RoomActionMode { create, join, custom }
+
 class RoomActionsPanel extends StatefulWidget {
   final TextEditingController controller;
   final VoidCallback onPressed;
-  final bool isCreateMode;
+  final RoomActionMode mode;
   final bool isLoading;
+  // Custom mod için başlık ve hint opsiyonel parametreler
+  final String? customLabel;
+  final String? customHint;
 
   const RoomActionsPanel({
     super.key,
     required this.controller,
     required this.onPressed,
-    required this.isCreateMode,
+    required this.mode,
     this.isLoading = false,
+    this.customLabel,
+    this.customHint,
   });
 
   @override
@@ -39,10 +47,13 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
   void _validate() {
     final text = widget.controller.text;
     bool disabled;
-    if (widget.isCreateMode) {
+    if (widget.mode == RoomActionMode.create) {
       disabled = !isValidYoutubeUrl(text);
-    } else {
+    } else if (widget.mode == RoomActionMode.join) {
       disabled = text.length != 6;
+    } else {
+      // custom modda her zaman aktif (veya isterseniz boş ise disable edebilirsiniz)
+      disabled = false;
     }
     if (disabled != isDisabled) {
       setState(() {
@@ -53,20 +64,40 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final String label = widget.isCreateMode ? 'Create Room' : 'Join Room';
-    final String buttonText =
-        widget.isCreateMode ? 'Create Watch Room' : 'Join Room';
-    final String hint = widget.isCreateMode
-        ? 'Paste YouTube video link here...'
-        : 'ENTER ROOM CODE';
-    final String iconPath = widget.isCreateMode
-        ? 'assets/icons/video-icon.png'
-        : 'assets/icons/enter-room-icon.png';
-    final List<Color> gradientColors = widget.isCreateMode
-        ? [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]
-        : [const Color(0xFF22C55E), const Color(0xFF16A34A)];
-    final Color focusBorderColor =
-        widget.isCreateMode ? const Color(0xFF8B5CF6) : const Color(0xFF22C55E);
+    // Modlara göre label, buttonText, hint ve iconPath ayarlanıyor
+    String label;
+    String buttonText;
+    String hint;
+    String iconPath;
+    List<Color> gradientColors;
+    Color focusBorderColor;
+
+    switch (widget.mode) {
+      case RoomActionMode.create:
+        label = 'Create Room';
+        buttonText = 'Create Watch Room';
+        hint = 'Paste YouTube video link here...';
+        iconPath = 'assets/icons/video-icon.png';
+        gradientColors = [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)];
+        focusBorderColor = const Color(0xFF8B5CF6);
+        break;
+      case RoomActionMode.join:
+        label = 'Join Room';
+        buttonText = 'Join Room';
+        hint = 'ENTER ROOM CODE';
+        iconPath = 'assets/icons/enter-room-icon.png';
+        gradientColors = [const Color(0xFF22C55E), const Color(0xFF16A34A)];
+        focusBorderColor = const Color(0xFF22C55E);
+        break;
+      case RoomActionMode.custom:
+        label = widget.customLabel ?? '';
+        buttonText = widget.customLabel ?? '';
+        hint = widget.customHint ?? '';
+        iconPath = 'assets/icons/chain-icon.png'; // örnek bir ikon
+        gradientColors = [const Color(0xFF6366F1), const Color(0xFF818CF8)];
+        focusBorderColor = const Color(0xFF6366F1);
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -128,7 +159,7 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
             child: TextField(
               controller: widget.controller,
               onChanged: (val) {
-                if (!widget.isCreateMode) {
+                if (widget.mode == RoomActionMode.join) {
                   String upper = val.toUpperCase();
                   if (upper.length > 6) upper = upper.substring(0, 6);
                   if (widget.controller.text != upper) {
@@ -141,11 +172,14 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
                 _validate();
               },
               style: const TextStyle(color: Colors.white),
-              textAlign:
-                  widget.isCreateMode ? TextAlign.start : TextAlign.center,
-              textCapitalization: widget.isCreateMode
-                  ? TextCapitalization.none
-                  : TextCapitalization.characters,
+              textAlign: widget.mode == RoomActionMode.create
+                  ? TextAlign.start
+                  : widget.mode == RoomActionMode.join
+                      ? TextAlign.center
+                      : TextAlign.start,
+              textCapitalization: widget.mode == RoomActionMode.join
+                  ? TextCapitalization.characters
+                  : TextCapitalization.none,
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: const TextStyle(color: Colors.white70),
@@ -178,9 +212,7 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
               isLoading: widget.isLoading,
               height: 60,
               borderRadius: 16,
-              gradientColors: widget.isCreateMode
-                  ? [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]
-                  : [const Color(0xFF22C55E), const Color(0xFF16A34A)],
+              gradientColors: gradientColors,
             ),
           ),
         ],

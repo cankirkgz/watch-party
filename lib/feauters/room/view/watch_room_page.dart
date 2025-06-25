@@ -8,6 +8,7 @@ import 'package:watchparty/services/firestore_service.dart';
 import 'package:watchparty/shared/atoms/viewer_count_badge.dart';
 import 'package:watchparty/shared/organisms/chat_panel.dart';
 import 'package:watchparty/shared/molecules/chat_message_bubble.dart';
+import 'package:watchparty/services/user_prefs_service.dart';
 
 class WatchRoomPage extends StatefulWidget {
   final String roomId;
@@ -20,7 +21,8 @@ class WatchRoomPage extends StatefulWidget {
   _WatchRoomPageState createState() => _WatchRoomPageState();
 }
 
-class _WatchRoomPageState extends State<WatchRoomPage> {
+class _WatchRoomPageState extends State<WatchRoomPage>
+    with WidgetsBindingObserver {
   late final YoutubePlayerController _controller;
   late final RoomViewModel _viewModel;
   Duration _position = Duration.zero;
@@ -44,6 +46,7 @@ class _WatchRoomPageState extends State<WatchRoomPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
 
     // YouTube controller with custom controls
     _controller = YoutubePlayerController(
@@ -67,15 +70,40 @@ class _WatchRoomPageState extends State<WatchRoomPage> {
     // Chat input
     _chatController = TextEditingController();
     _controller.addListener(_onVideoPlayerUpdate);
+
+    _addSelfToParticipants();
+  }
+
+  Future<void> _addSelfToParticipants() async {
+    final userId = await UserPrefsService.getOrCreateUserId();
+    await RoomService(FirestoreService()).addParticipant(widget.roomId, userId);
+  }
+
+  Future<void> _removeSelfFromParticipants() async {
+    final userId = await UserPrefsService.getOrCreateUserId();
+    await RoomService(FirestoreService())
+        .removeParticipant(widget.roomId, userId);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _removeSelfFromParticipants();
     _controller.removeListener(_onVideoPlayerUpdate); // ✅ unutma
     _controller.dispose();
     _viewModel.close();
     _chatController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _removeSelfFromParticipants();
+    } else if (state == AppLifecycleState.resumed) {
+      _addSelfToParticipants();
+    }
   }
 
   String _formatDuration(Duration d) {
@@ -125,7 +153,15 @@ class _WatchRoomPageState extends State<WatchRoomPage> {
             actions: [
               RoomCodeBadge(roomCode: widget.roomId),
               const SizedBox(width: 12),
-              ViewerCountBadge(viewerCount: 0), // TODO: bind real count
+              BlocBuilder<RoomViewModel, RoomViewState>(
+                builder: (context, state) {
+                  int count = 0;
+                  if (state is RoomViewSynced) {
+                    count = state.room.participants.length;
+                  }
+                  return ViewerCountBadge(viewerCount: count);
+                },
+              ),
               const SizedBox(width: 12),
             ],
           ),

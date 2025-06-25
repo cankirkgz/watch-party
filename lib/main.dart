@@ -7,7 +7,7 @@ import 'package:watchparty/feauters/home/services/home_room_creator_service.dart
 import 'package:watchparty/feauters/home/view_model/home_view_model.dart';
 import 'package:watchparty/feauters/room/services/room_service.dart';
 import 'package:watchparty/services/firestore_service.dart';
-import 'package:watchparty/services/user_service.dart';
+import 'package:watchparty/services/user_prefs_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +16,7 @@ void main() async {
   await Firebase.initializeApp();
 
   // Benzersiz kullanıcı ID'si al
-  final userId = await UserService.getOrCreateUserId();
+  final userId = await UserPrefsService.getOrCreateUserId();
 
   // Uygulamayı başlat
   runApp(WatchPartyApp(userId: userId));
@@ -50,7 +50,7 @@ class WatchPartyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp.router(
-          routerConfig: AppRouter.router,
+          routerConfig: AppRouter.createRouter(userId),
           debugShowCheckedModeBanner: false,
           title: 'WatchParty',
           theme: ThemeData.dark(),
