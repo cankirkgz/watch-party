@@ -35,6 +35,7 @@ class _WatchRoomPageState extends State<WatchRoomPage>
   bool _isLocalAction = false;
   bool? _lastRemoteIsPlaying;
   Duration _lastRemotePosition = Duration.zero;
+  bool _showControls = false;
 
   void _onVideoPlayerUpdate() {
     final playerValue = _controller.value;
@@ -121,6 +122,17 @@ class _WatchRoomPageState extends State<WatchRoomPage>
     return '$hour:$min';
   }
 
+  void handleMessage(String content) {
+    if (content.startsWith('[audio]:')) {
+      final path = content.replaceFirst('[audio]:', '');
+      // TODO: Ses mesajı oynatıcı ekle
+      print('Sesli mesaj: ' + path);
+    } else {
+      // Normal yazılı mesaj
+      print('Yazılı mesaj: ' + content);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final current = _controller.value.position.inSeconds.toDouble();
@@ -175,141 +187,188 @@ class _WatchRoomPageState extends State<WatchRoomPage>
             ],
           ),
           resizeToAvoidBottomInset: true,
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: Column(
-                    children: [
-                      // Video player
-                      AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: YoutubePlayer(controller: _controller),
-                      ),
-
-                      // Play/Pause button
-                      IconButton(
-                        padding: EdgeInsets.zero,
-                        iconSize: 35,
-                        icon: Icon(_isPlaying
-                            ? Icons.pause_circle_filled
-                            : Icons.play_circle_fill),
-                        onPressed: () async {
-                          setState(() => _isLocalAction = true);
-                          if (_isPlaying) {
-                            _controller.pause();
-                          } else {
-                            _controller.play();
-                          }
-                          await _viewModel.setPlaybackState(
-                            roomId: widget.roomId,
-                            isPlaying: !_isPlaying,
-                            currentTime:
-                                _controller.value.position.inSeconds.toDouble(),
-                          );
-                          Future.delayed(const Duration(milliseconds: 100),
-                              () => setState(() => _isLocalAction = false));
+          body: Column(
+            children: [
+              // Video player
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Stack(
+                  children: [
+                    YoutubePlayer(controller: _controller),
+                    // Karartma ve kontroller
+                    AnimatedOpacity(
+                      opacity: _showControls ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _showControls = false;
+                          });
                         },
-                      ),
-
-                      // Slider with timestamps
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          children: [
-                            Text(_formatDuration(_position)),
-                            Expanded(
-                              child: Slider(
-                                min: 0,
-                                max: _duration.inSeconds.toDouble(),
-                                value: _position.inSeconds
-                                    .toDouble()
-                                    .clamp(0, _duration.inSeconds.toDouble()),
-                                onChanged: (v) {
-                                  setState(() =>
-                                      _position = Duration(seconds: v.toInt()));
-                                },
-                                onChangeEnd: (v) {
-                                  _isLocalAction = true;
-                                  _controller
-                                      .seekTo(Duration(seconds: v.toInt()));
-                                  _viewModel
-                                      .setPlaybackState(
-                                    roomId: widget.roomId,
-                                    isPlaying: _isPlaying,
-                                    currentTime: v,
-                                  )
-                                      .whenComplete(() {
-                                    Future.delayed(
-                                        const Duration(milliseconds: 100),
-                                        () => setState(
-                                            () => _isLocalAction = false));
-                                  });
-                                },
+                        child: Container(
+                          color: Colors.black.withOpacity(0.4),
+                          child: Stack(
+                            children: [
+                              Positioned(
+                                left: 0,
+                                right: 0,
+                                bottom: 32,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      padding: EdgeInsets.zero,
+                                      iconSize: 60,
+                                      icon: Icon(
+                                        _isPlaying
+                                            ? Icons.pause_circle_filled
+                                            : Icons.play_circle_fill,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () async {
+                                        setState(() => _isLocalAction = true);
+                                        if (_isPlaying) {
+                                          _controller.pause();
+                                        } else {
+                                          _controller.play();
+                                        }
+                                        await _viewModel.setPlaybackState(
+                                          roomId: widget.roomId,
+                                          isPlaying: !_isPlaying,
+                                          currentTime: _controller
+                                              .value.position.inSeconds
+                                              .toDouble(),
+                                        );
+                                        Future.delayed(
+                                            const Duration(milliseconds: 100),
+                                            () => setState(
+                                                () => _isLocalAction = false));
+                                      },
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: Row(
+                                        children: [
+                                          Text(_formatDuration(_position),
+                                              style: TextStyle(
+                                                  color: Colors.white)),
+                                          Expanded(
+                                            child: Slider(
+                                              min: 0,
+                                              max: _duration.inSeconds
+                                                  .toDouble(),
+                                              value: _position.inSeconds
+                                                  .toDouble()
+                                                  .clamp(
+                                                      0,
+                                                      _duration.inSeconds
+                                                          .toDouble()),
+                                              onChanged: (v) {
+                                                setState(() => _position =
+                                                    Duration(
+                                                        seconds: v.toInt()));
+                                              },
+                                              onChangeEnd: (v) {
+                                                _isLocalAction = true;
+                                                _controller.seekTo(Duration(
+                                                    seconds: v.toInt()));
+                                                _viewModel
+                                                    .setPlaybackState(
+                                                  roomId: widget.roomId,
+                                                  isPlaying: _isPlaying,
+                                                  currentTime: v,
+                                                )
+                                                    .whenComplete(() {
+                                                  Future.delayed(
+                                                      const Duration(
+                                                          milliseconds: 100),
+                                                      () => setState(() =>
+                                                          _isLocalAction =
+                                                              false));
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          Text(_formatDuration(_duration),
+                                              style: TextStyle(
+                                                  color: Colors.white)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            Text(_formatDuration(_duration)),
-                          ],
-                        ),
-                      ),
-
-                      const Divider(),
-
-                      // Chat panel - Sabit yükseklik veriyoruz
-                      SizedBox(
-                        height: constraints.maxHeight *
-                            0.4, // Ekranın %40'ı kadar yer kaplasın
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: StreamBuilder<List<MessageModel>>(
-                            stream: MessageService()
-                                .getMessagesStream(widget.roomId),
-                            builder: (context, snapshot) {
-                              final messages = snapshot.data ?? [];
-                              final chatBubbles = messages
-                                  .map((msg) => ChatMessageBubble(
-                                        username: msg.senderName,
-                                        time: _formatTime(msg.sentAt),
-                                        message: msg.text,
-                                      ))
-                                  .toList();
-                              return ChatPanel(
-                                messages: chatBubbles,
-                                controller: _chatController,
-                                onSend: (text) async {
-                                  if (text.trim().isEmpty) return;
-                                  final userId = await UserPrefsService
-                                      .getOrCreateUserId();
-                                  String userName = "";
-                                  try {
-                                    final user =
-                                        await UserService().getUserById(userId);
-                                    userName = user?.name ?? "Anonim";
-                                  } catch (_) {
-                                    userName = "Anonim";
-                                  }
-                                  final message = MessageModel(
-                                    text: text,
-                                    senderId: userId,
-                                    senderName: userName,
-                                    sentAt: DateTime.now(),
-                                    roomId: widget.roomId,
-                                  );
-                                  await MessageService().sendMessage(message);
-                                },
-                              );
-                            },
+                            ],
                           ),
                         ),
                       ),
-                    ],
+                    ),
+                    // Tıklama alanı (kontrolleri açmak için)
+                    if (!_showControls)
+                      Positioned.fill(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTap: () {
+                            setState(() {
+                              _showControls = true;
+                            });
+                          },
+                          child: Container(color: Colors.transparent),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              const Divider(),
+
+              // Chat panel - Ekranın kalanını tamamen kaplasın
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: StreamBuilder<List<MessageModel>>(
+                    stream: MessageService().getMessagesStream(widget.roomId),
+                    builder: (context, snapshot) {
+                      final messages = snapshot.data ?? [];
+                      final chatBubbles = messages
+                          .map((msg) => ChatMessageBubble(
+                                username: msg.senderName,
+                                time: _formatTime(msg.sentAt),
+                                message: msg.text,
+                              ))
+                          .toList();
+                      return ChatPanel(
+                        messages: chatBubbles,
+                        controller: _chatController,
+                        onSend: (text) async {
+                          handleMessage(text);
+                          if (text.trim().isEmpty) return;
+                          final userId =
+                              await UserPrefsService.getOrCreateUserId();
+                          String userName = "";
+                          try {
+                            final user =
+                                await UserService().getUserById(userId);
+                            userName = user?.name ?? "Anonim";
+                          } catch (_) {
+                            userName = "Anonim";
+                          }
+                          final message = MessageModel(
+                            text: text,
+                            senderId: userId,
+                            senderName: userName,
+                            sentAt: DateTime.now(),
+                            roomId: widget.roomId,
+                          );
+                          await MessageService().sendMessage(message);
+                        },
+                      );
+                    },
                   ),
                 ),
-              );
-            },
+              ),
+            ],
           ),
         ),
       ),

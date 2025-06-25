@@ -27,6 +27,7 @@ class ChatPanel extends StatelessWidget {
         border: Border.all(color: const Color(0xFF2A2A2A)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           // Chat header
           _buildChatHeader(),

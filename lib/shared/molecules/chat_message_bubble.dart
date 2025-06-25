@@ -44,11 +44,18 @@ class ChatMessageBubble extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
-              message,
-              style: TextStyle(
-                fontSize: 18,
-                color: Color(0xFFD1D5DB),
+            Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.7,
+              ),
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Color(0xFFD1D5DB),
+                ),
+                softWrap: true,
+                overflow: TextOverflow.visible,
               ),
             ),
           ],
