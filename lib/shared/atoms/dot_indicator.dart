@@ -43,7 +43,7 @@ class _DotIndicatorState extends State<DotIndicator>
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Color(0xFF7C3AED).withOpacity(opacity),
+                  color: Color(0xFF7C3AED).withValues(alpha: opacity),
                   shape: BoxShape.circle,
                 ),
               );

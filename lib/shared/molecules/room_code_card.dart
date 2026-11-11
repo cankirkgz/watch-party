@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -35,7 +36,7 @@ class _RoomCodeCardState extends State<RoomCodeCard>
   }
 
   Color getShadowColor(double opacity) {
-    return const Color(0xFF8B5CF6).withOpacity(opacity);
+    return const Color(0xFF8B5CF6).withValues(alpha: opacity);
   }
 
   @override
@@ -67,8 +68,9 @@ class _RoomCodeCardState extends State<RoomCodeCard>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Room Code',
+                Text(
+                  l(context, "Oda kodu", "Room Code", "Код комнаты", "Raumcode",
+                      "Código de sala"),
                   style: TextStyle(
                     fontSize: 16,
                     color: Color(0xFF9CA3AF),
@@ -86,7 +88,14 @@ class _RoomCodeCardState extends State<RoomCodeCard>
                   onPressed: () {
                     Clipboard.setData(ClipboardData(text: widget.roomCode));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Room code copied!')),
+                      SnackBar(
+                          content: Text(l(
+                              context,
+                              "Oda kodu kopyalandı!",
+                              "Room code copied!",
+                              "Код комнаты скопирован!",
+                              "Raumcode kopiert!",
+                              "¡Código de sala copiado!"))),
                     );
                   },
                 ),
@@ -130,8 +139,9 @@ class CopyCodeButton extends StatelessWidget {
               color: iconColor,
             ),
             const SizedBox(width: 8),
-            const Text(
-              'Copy Code',
+            Text(
+              l(context, "Kodu kopyala", "Copy Code", "Копировать код",
+                  "Code kopieren", "Copiar código"),
               style: TextStyle(
                 fontSize: 14,
                 color: Color(0xFFA78BFA),

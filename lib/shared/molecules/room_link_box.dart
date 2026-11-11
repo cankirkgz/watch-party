@@ -26,7 +26,7 @@ class RoomLinkBox extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            roomLink.length > 35 ? roomLink.substring(0, 25) + '...' : roomLink,
+            roomLink.length > 35 ? '...' : roomLink,
             style: const TextStyle(
               color: Color(0xFFD1D5DB),
               fontSize: 18,

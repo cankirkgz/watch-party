@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/material.dart';
 
 class PlaybackStatusLabel extends StatelessWidget {
@@ -14,7 +15,13 @@ class PlaybackStatusLabel extends StatelessWidget {
         ),
         SizedBox(width: 12),
         Text(
-          "Synced with room",
+          l(
+              context,
+              "Odayla senkron",
+              "Synced with room",
+              "Синхронно с комнатой",
+              "Mit dem Raum synchron",
+              "En sincronía con la sala"),
           style: TextStyle(
             fontSize: 16,
             color: Color(0xFF9CA3AF),

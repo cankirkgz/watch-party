@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:watchparty/shared/molecules/room_actions_panel.dart';
@@ -18,41 +19,58 @@ class EnterNamePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final TextEditingController _nameController = TextEditingController();
+    final TextEditingController nameController = TextEditingController();
 
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 100),
-            const Text(
-              "Enter Your Name",
+            Text(
+              l(context, "Adını yaz", "Enter Your Name", "Введите имя",
+                  "Gib deinen Namen ein", "Escribe tu nombre"),
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Enter your name so that your friends can see you",
+            Text(
+              l(
+                  context,
+                  "Arkadaşlarının göreceği adını yaz",
+                  "Enter your name so that your friends can see you",
+                  "Введите имя, которое увидят друзья",
+                  "Gib den Namen ein, den deine Freunde sehen",
+                  "Escribe el nombre que verán tus amigos"),
               style: TextStyle(fontSize: 18, color: Color(0xFF9CA3AF)),
             ),
             const SizedBox(height: 100),
             RoomActionsPanel(
-              controller: _nameController,
+              controller: nameController,
               mode: RoomActionMode.custom,
-              customLabel: "Your Name",
-              customHint: "Please enter your name",
+              customLabel: l(context, "Adın", "Your Name", "Ваше имя",
+                  "Dein Name", "Tu nombre"),
+              customHint: l(context, "Adını yaz", "Please enter your name",
+                  "Введите имя", "Gib deinen Namen ein", "Escribe tu nombre"),
               onPressed: () async {
-                final name = _nameController.text.trim();
+                final name = nameController.text.trim();
                 if (name.isNotEmpty) {
-                  // Kullanıcı id'sini al
+                  // Kullanıcı kimliğini al.
                   final userId = await UserPrefsService.getOrCreateUserId();
-                  // Firestore'da ismi güncelle
+                  // Firestore profilini güncelle.
                   await UserService().updateUserName(userId, name);
-                  // WatchRoomPage'e yönlendir
+                  // İzleme odasına yönlendir.
+                  if (!context.mounted) return;
                   context.go(
                       '/room/$roomId?videoId=$videoId&name=$name&mode=$mode');
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Lütfen adınızı girin.")),
+                    SnackBar(
+                        content: Text(l(
+                            context,
+                            "Lütfen adını yaz.",
+                            "Lütfen adınızı girin.",
+                            "Введите имя.",
+                            "Gib bitte deinen Namen ein.",
+                            "Escribe tu nombre."))),
                   );
                 }
               },

@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Allow microphone access to record voice messages for your friends.";
+"NSPhotoLibraryUsageDescription" = "Allow photo library access to share photos in the chat.";
+"NSCameraUsageDescription" = "Allow camera access to take photos to share in the chat.";

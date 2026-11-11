@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Arkadaşlarına sesli mesaj gönderebilmen için mikrofon erişimi gerekir.";
+"NSPhotoLibraryUsageDescription" = "Sohbette fotoğraf paylaşabilmen için fotoğraf arşivi erişimi gerekir.";
+"NSCameraUsageDescription" = "Sohbette paylaşmak üzere fotoğraf çekebilmen için kamera erişimi gerekir.";

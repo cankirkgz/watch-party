@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/material.dart';
 
 class CopyButton extends StatelessWidget {
@@ -45,7 +46,8 @@ class CopyButton extends StatelessWidget {
               ),
               SizedBox(width: 6),
               Text(
-                "Copy",
+                l(context, "Kopyala", "Copy", "Копировать", "Kopieren",
+                    "Copiar"),
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

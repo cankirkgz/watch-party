@@ -1,25 +1,29 @@
-String? extractYoutubeVideoId(String url) {
-  try {
-    final uri = Uri.parse(url);
-    if (uri.host.contains('youtu.be')) {
-      return uri.pathSegments.first;
-    } else if (uri.queryParameters.containsKey('v')) {
-      return uri.queryParameters['v'];
+String? extractYoutubeVideoId(String input) {
+  final value = input.trim();
+  if (RegExp(r'^[a-zA-Z0-9_-]{11}$').hasMatch(value)) return value;
+
+  final uri = Uri.tryParse(value);
+  if (uri == null || !uri.hasAuthority) return null;
+  final host = uri.host.toLowerCase().replaceFirst('www.', '');
+  String? candidate;
+
+  if (host == 'youtu.be' && uri.pathSegments.isNotEmpty) {
+    candidate = uri.pathSegments.first;
+  } else if (host == 'youtube.com' ||
+      host == 'm.youtube.com' ||
+      host == 'music.youtube.com') {
+    candidate = uri.queryParameters['v'];
+    if (candidate == null && uri.pathSegments.length >= 2) {
+      const supportedPaths = {'shorts', 'embed', 'live'};
+      if (supportedPaths.contains(uri.pathSegments.first)) {
+        candidate = uri.pathSegments[1];
+      }
     }
-    return null;
-  } catch (e) {
-    return null;
   }
+
+  return candidate != null && RegExp(r'^[a-zA-Z0-9_-]{11}$').hasMatch(candidate)
+      ? candidate
+      : null;
 }
 
-bool isValidYoutubeUrl(String url) {
-  final uri = Uri.tryParse(url);
-  if (uri == null) return false;
-
-  final host = uri.host;
-  final hasVideoId =
-      uri.queryParameters.containsKey('v') || uri.pathSegments.isNotEmpty;
-
-  return (host.contains("youtube.com") || host.contains("youtu.be")) &&
-      hasVideoId;
-}
+bool isValidYoutubeUrl(String url) => extractYoutubeVideoId(url) != null;

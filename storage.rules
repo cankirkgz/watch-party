@@ -1,0 +1,13 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /room_media/{roomId}/{userId}/{fileName} {
+      function member() { return request.auth != null && request.auth.uid in firestore.get(/databases/(default)/documents/rooms/$(roomId)).data.participants; }
+      allow read: if member();
+      allow create: if member() && request.auth.uid == userId
+        && request.resource.size < 20 * 1024 * 1024
+        && request.resource.contentType.matches('(image|audio)/.*');
+      allow update, delete: if false;
+    }
+  }
+}

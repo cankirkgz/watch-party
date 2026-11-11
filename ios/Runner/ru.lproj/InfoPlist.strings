@@ -1,0 +1,3 @@
+"NSMicrophoneUsageDescription" = "Разрешите доступ к микрофону, чтобы записывать голосовые сообщения друзьям.";
+"NSPhotoLibraryUsageDescription" = "Разрешите доступ к фото, чтобы отправлять их в чат.";
+"NSCameraUsageDescription" = "Разрешите доступ к камере, чтобы делать фото для чата.";

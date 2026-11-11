@@ -32,10 +32,10 @@ class AppButton extends StatelessWidget {
           const Color(0xFF7C3AED),
         ];
     final List<Color> disabledGradientColors = gradientColors != null
-        ? gradientColors!.map((c) => c.withOpacity(0.4)).toList()
+        ? gradientColors!.map((c) => c.withValues(alpha: 0.4)).toList()
         : [
-            const Color(0xFF8B5CF6).withOpacity(0.4),
-            const Color(0xFF7C3AED).withOpacity(0.4),
+            const Color(0xFF8B5CF6).withValues(alpha: 0.4),
+            const Color(0xFF7C3AED).withValues(alpha: 0.4),
           ];
 
     return SizedBox(

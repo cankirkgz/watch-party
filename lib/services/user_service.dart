@@ -1,39 +1,42 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:watchparty/models/user_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 
 class UserService {
-  final CollectionReference usersCollection =
+  Future<void> updateProfile(String id,
+          {required String name,
+          required String countryCode,
+          required String languageCode,
+          required String translationLanguage,
+          required bool autoTranslate}) =>
+      usersCollection.doc(id).set({
+        'name': name.trim(),
+        'countryCode': countryCode,
+        'preferredLanguage': languageCode,
+        'translationLanguage': translationLanguage,
+        'autoTranslate': autoTranslate,
+      }, SetOptions(merge: true));
+  final CollectionReference<Map<String, dynamic>> usersCollection =
       FirebaseFirestore.instance.collection('users');
 
-  static const _userIdKey = 'userId';
-
-  /// Localde userId varsa onu döner, yoksa oluşturup kaydeder
-  static Future<String> getOrCreateUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final existingUserId = prefs.getString(_userIdKey);
-
-    if (existingUserId != null) return existingUserId;
-
-    final newUserId = const Uuid().v4();
-    await prefs.setString(_userIdKey, newUserId);
-    return newUserId;
-  }
-
-  Future<void> createUser(UserModel user) async {
-    await usersCollection.doc(user.id).set(user.toMap());
+  Future<void> createOrUpdateUser(UserModel user) async {
+    await usersCollection
+        .doc(user.id)
+        .set(user.toMap(), SetOptions(merge: true));
   }
 
   Future<UserModel?> getUserById(String id) async {
     final doc = await usersCollection.doc(id).get();
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
-    }
-    return null;
+    final data = doc.data();
+    return data == null ? null : UserModel.fromMap(data);
   }
 
   Future<void> updateUserName(String id, String name) async {
-    await usersCollection.doc(id).update({'name': name});
+    await usersCollection.doc(id).set({'name': name}, SetOptions(merge: true));
+  }
+
+  Future<void> updatePreferredLanguage(String id, String languageCode) async {
+    await usersCollection.doc(id).set({
+      'preferredLanguage': languageCode,
+    }, SetOptions(merge: true));
   }
 }

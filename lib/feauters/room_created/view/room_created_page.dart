@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:watchparty/shared/atoms/animated_play_button.dart';
@@ -22,13 +23,25 @@ class RoomCreatedPage extends StatelessWidget {
               assetPath: "assets/icons/check-button.png",
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Your room is ready!",
+            Text(
+              l(
+                  context,
+                  "Odan hazır!",
+                  "Your room is ready!",
+                  "Ваша комната готова!",
+                  "Dein Raum ist bereit!",
+                  "¡Tu sala está lista!"),
               style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Share the code below with friends",
+            Text(
+              l(
+                  context,
+                  "Aşağıdaki kodu arkadaşlarınla paylaş",
+                  "Share the code below with friends",
+                  "Поделитесь кодом с друзьями",
+                  "Teile den Code mit deinen Freunden",
+                  "Comparte el código con tus amigos"),
               style: TextStyle(fontSize: 18, color: Color(0xFF9CA3AF)),
             ),
             const SizedBox(height: 20),
@@ -37,20 +50,33 @@ class RoomCreatedPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             AppButton(
-              label: "Go To Room",
+              label: l(context, "Odaya git", "Go To Room", "Войти в комнату",
+                  "Zum Raum", "Ir a la sala"),
               onPressed: () {
                 context.pushReplacement('/room/$roomCode?videoId=$videoId');
               },
               assetIconPath: "assets/icons/arrow-right-icon.png",
             ),
             const SizedBox(height: 20),
-            const FeatureItem(
+            FeatureItem(
               iconAssetPath: "assets/icons/video-icon-outlined.png",
-              text: "Watch together in sync",
+              text: l(
+                  context,
+                  "Birlikte senkron izle",
+                  "Watch together in sync",
+                  "Смотрите синхронно",
+                  "Synchron zusammen schauen",
+                  "Ver juntos en sincronía"),
             ),
-            const FeatureItem(
+            FeatureItem(
               iconAssetPath: "assets/icons/chat-icon-outlined.png",
-              text: "Chat with friends",
+              text: l(
+                  context,
+                  "Arkadaşlarınla sohbet et",
+                  "Chat with friends",
+                  "Общайтесь с друзьями",
+                  "Mit Freunden chatten",
+                  "Chatea con tus amigos"),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/services.dart';
 
 class RoomCodeBadge extends StatelessWidget {
@@ -23,7 +24,13 @@ class RoomCodeBadge extends StatelessWidget {
           children: [
             SizedBox(width: 6),
             Text(
-              "Room: #$roomCode",
+              l(
+                  context,
+                  'Oda: #$roomCode',
+                  'Room: #$roomCode',
+                  'Комната: #$roomCode',
+                  'Raum: #$roomCode',
+                  'Sala: #$roomCode'),
               style: TextStyle(
                 color: Color(
                   0xFFD1D5DB,

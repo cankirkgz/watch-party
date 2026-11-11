@@ -1,3 +1,4 @@
+import 'package:watchparty/shared/party_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:watchparty/core/utils/youtube_utils.dart';
 import 'package:watchparty/shared/atoms/app_button.dart';
@@ -74,17 +75,33 @@ class _RoomActionsPanelState extends State<RoomActionsPanel> {
 
     switch (widget.mode) {
       case RoomActionMode.create:
-        label = 'Create Room';
-        buttonText = 'Create Watch Room';
-        hint = 'Paste YouTube video link here...';
+        label = l(context, "Oda oluştur", "Create Room", "Создать комнату",
+            "Raum erstellen", "Crear sala");
+        buttonText = l(
+            context,
+            "İzleme odası oluştur",
+            "Create Watch Room",
+            "Создать комнату просмотра",
+            "Raum zum Schauen erstellen",
+            "Crear sala para ver juntos");
+        hint = l(
+            context,
+            "YouTube bağlantısını buraya yapıştır...",
+            "Paste YouTube video link here...",
+            "Вставьте ссылку YouTube...",
+            "YouTube-Link hier einfügen...",
+            "Pega aquí el enlace de YouTube...");
         iconPath = 'assets/icons/video-icon.png';
         gradientColors = [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)];
         focusBorderColor = const Color(0xFF8B5CF6);
         break;
       case RoomActionMode.join:
-        label = 'Join Room';
-        buttonText = 'Join Room';
-        hint = 'ENTER ROOM CODE';
+        label = l(context, "Odaya katıl", "Join Room", "Войти в комнату",
+            "Raum beitreten", "Entrar en la sala");
+        buttonText = l(context, "Odaya katıl", "Join Room", "Войти в комнату",
+            "Raum beitreten", "Entrar en la sala");
+        hint = l(context, "ODA KODUNU GİR", "ENTER ROOM CODE",
+            "ВВЕДИТЕ КОД КОМНАТЫ", "RAUMCODE EINGEBEN", "INTRODUCE EL CÓDIGO");
         iconPath = 'assets/icons/enter-room-icon.png';
         gradientColors = [const Color(0xFF22C55E), const Color(0xFF16A34A)];
         focusBorderColor = const Color(0xFF22C55E);
