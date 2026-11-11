@@ -1,0 +1,508 @@
+[
+  {
+    "videoId": "CWOrDXnnmOc",
+    "title": "Üsküdar’a Gider İken (Kâtibim)",
+    "performer": "Ezgi Köker",
+    "durationSeconds": 152,
+    "enabled": true,
+    "language": "tr",
+    "provenance": {
+      "lyricsRights": "Public-domain traditional Turkish lyrics; anonymous",
+      "lyricsSource": "https://tr.wikisource.org/wiki/Üsküdar’a_Gider_İken",
+      "timingSource": "https://lrclib.net/api/get/14751120",
+      "recording": "https://www.youtube.com/watch?v=CWOrDXnnmOc",
+      "playback": "YouTube embedded player"
+    },
+    "cues": [
+      {
+        "startMs": 21620,
+        "text": "Üsküdar'a gider iken aldı da bir yağmur",
+        "endMs": 26980
+      },
+      {
+        "startMs": 26980,
+        "text": "Üsküdar'a gider iken aldı da bir yağmur",
+        "endMs": 32290
+      },
+      {
+        "startMs": 32290,
+        "text": "Kâtibimin setresi uzun, eteği çamur",
+        "endMs": 37400
+      },
+      {
+        "startMs": 37400,
+        "text": "Kâtibimin setresi uzun, eteği çamur",
+        "endMs": 42730
+      },
+      {
+        "startMs": 42730,
+        "text": "Kâtip uykudan uyanmış, gözleri mahmur",
+        "endMs": 48060
+      },
+      {
+        "startMs": 48060,
+        "text": "Kâtip uykudan uyanmış, gözleri mahmur",
+        "endMs": 53360
+      },
+      {
+        "startMs": 53360,
+        "text": "Kâtip benim ben kâtibin, el ne karışır",
+        "endMs": 58590
+      },
+      {
+        "startMs": 58590,
+        "text": "Kâtibime kolalı da gömlek ne güzel yaraşır",
+        "endMs": 63820
+      },
+      {
+        "startMs": 63820,
+        "text": "Kâtip benim ben kâtibin, el ne karışır",
+        "endMs": 68980
+      },
+      {
+        "startMs": 68980,
+        "text": "Kâtibime kolalı da gömlek ne güzel yaraşır",
+        "endMs": 74370
+      },
+      {
+        "startMs": 95480,
+        "text": "Üsküdar'a gider iken bir mendil buldum",
+        "endMs": 100760
+      },
+      {
+        "startMs": 100760,
+        "text": "Üsküdar'a gider iken bir mendil buldum",
+        "endMs": 105930
+      },
+      {
+        "startMs": 105930,
+        "text": "Mendilimin içine lokum doldurdum",
+        "endMs": 111330
+      },
+      {
+        "startMs": 111330,
+        "text": "Mendilimin içine lokum doldurdum",
+        "endMs": 116440
+      },
+      {
+        "startMs": 116440,
+        "text": "Ben yârimi arar iken yanımda buldum",
+        "endMs": 121770
+      },
+      {
+        "startMs": 121770,
+        "text": "Ben yârimi arar iken yanımda buldum",
+        "endMs": 127050
+      },
+      {
+        "startMs": 127050,
+        "text": "Kâtip benim ben kâtibin, el ne karışır",
+        "endMs": 132500
+      },
+      {
+        "startMs": 132500,
+        "text": "Kâtibime kolalı da gömlek ne güzel yaraşır",
+        "endMs": 137690
+      },
+      {
+        "startMs": 137690,
+        "text": "Kâtip benim ben kâtibin, el ne karışır",
+        "endMs": 143030
+      },
+      {
+        "startMs": 143030,
+        "text": "Kâtibime kolalı da gömlek ne güzel yaraşır",
+        "endMs": 148170
+      }
+    ]
+  },
+  {
+    "videoId": "80aWAOrE4GQ",
+    "title": "Hey Onbeşli",
+    "performer": "Doğa İçin Çal",
+    "durationSeconds": 393,
+    "enabled": true,
+    "language": "tr",
+    "provenance": {
+      "lyricsRights": "Public-domain traditional Turkish lyrics; anonymous",
+      "lyricsSource": "https://kitap.eba.gov.tr/panel/dosyalar/upload/111/0/U_0_15_02_2019_13_25_32_603.pdf",
+      "timingSource": "https://lrclib.net/api/get/12030638",
+      "recording": "https://www.youtube.com/watch?v=80aWAOrE4GQ",
+      "playback": "YouTube embedded player"
+    },
+    "cues": [
+      {
+        "startMs": 44450,
+        "text": "Hey onbeşli, onbeşli",
+        "endMs": 51640
+      },
+      {
+        "startMs": 51640,
+        "text": "Tokat yolları taşlı",
+        "endMs": 59140
+      },
+      {
+        "startMs": 59140,
+        "text": "Hey onbeşli, onbeşli",
+        "endMs": 67040
+      },
+      {
+        "startMs": 67040,
+        "text": "Tokat yolları taşlı",
+        "endMs": 73790
+      },
+      {
+        "startMs": 73790,
+        "text": "Onbeşliler gidiyor",
+        "endMs": 77950
+      },
+      {
+        "startMs": 77950,
+        "text": "Kızların gözü yaşlı",
+        "endMs": 84020
+      },
+      {
+        "startMs": 84020,
+        "text": "Aslan yârim, gız, senin adın Hediye",
+        "endMs": 91670
+      },
+      {
+        "startMs": 91670,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 98830
+      },
+      {
+        "startMs": 98830,
+        "text": "Fistan aldım endazesi 17'ye",
+        "endMs": 106320
+      },
+      {
+        "startMs": 106320,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 113750
+      },
+      {
+        "startMs": 143640,
+        "text": "Giderim elinizden",
+        "endMs": 147360
+      },
+      {
+        "startMs": 147360,
+        "text": "Kurtula'm dilinizden",
+        "endMs": 151070
+      },
+      {
+        "startMs": 151070,
+        "text": "Giderim elinizden",
+        "endMs": 154790
+      },
+      {
+        "startMs": 154790,
+        "text": "Kurtula'm dilinizden",
+        "endMs": 158480
+      },
+      {
+        "startMs": 158480,
+        "text": "Yeşilbaş ördek olsam",
+        "endMs": 162130
+      },
+      {
+        "startMs": 162130,
+        "text": "Su içmem gölünüzden",
+        "endMs": 167120
+      },
+      {
+        "startMs": 167120,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 174680
+      },
+      {
+        "startMs": 174680,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 182090
+      },
+      {
+        "startMs": 182090,
+        "text": "Aslan yârim, gız, senin adın Hediye",
+        "endMs": 189410
+      },
+      {
+        "startMs": 189410,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 196540
+      },
+      {
+        "startMs": 226810,
+        "text": "Gidiyo'm, gidemiyo'm",
+        "endMs": 230460
+      },
+      {
+        "startMs": 230460,
+        "text": "Sevdim, terk edemiyo'm",
+        "endMs": 234140
+      },
+      {
+        "startMs": 234140,
+        "text": "Gidiyo'm, gidemiyo'm",
+        "endMs": 237770
+      },
+      {
+        "startMs": 237770,
+        "text": "Sevdim, terk edemiyo'm",
+        "endMs": 240920
+      },
+      {
+        "startMs": 240920,
+        "text": "Sevdiğim pek gönüllü",
+        "endMs": 245160
+      },
+      {
+        "startMs": 245160,
+        "text": "Gönlünü edemiyo'm",
+        "endMs": 248450
+      },
+      {
+        "startMs": 248450,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 255880
+      },
+      {
+        "startMs": 255880,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 263270
+      },
+      {
+        "startMs": 263270,
+        "text": "Fistan aldım endazesi 17'ye",
+        "endMs": 270560
+      },
+      {
+        "startMs": 270560,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 278230
+      },
+      {
+        "startMs": 308080,
+        "text": "Gidiyo'm, gidemiyo'm",
+        "endMs": 311660
+      },
+      {
+        "startMs": 311660,
+        "text": "Az doldur, içemiyo'm",
+        "endMs": 315330
+      },
+      {
+        "startMs": 315330,
+        "text": "Gidiyo'm, gidemiyo'm",
+        "endMs": 319010
+      },
+      {
+        "startMs": 319010,
+        "text": "Az doldur, içemiyo'm",
+        "endMs": 322150
+      },
+      {
+        "startMs": 322150,
+        "text": "Sen benden geçtin ama",
+        "endMs": 326040
+      },
+      {
+        "startMs": 326040,
+        "text": "Ben senden geçemiyo'm",
+        "endMs": 329790
+      },
+      {
+        "startMs": 329790,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 337060
+      },
+      {
+        "startMs": 337060,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 344500
+      },
+      {
+        "startMs": 344500,
+        "text": "Fistan aldım endazesi 17'ye",
+        "endMs": 351830
+      },
+      {
+        "startMs": 351830,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 359290
+      },
+      {
+        "startMs": 359290,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 366640
+      },
+      {
+        "startMs": 366640,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 373980
+      },
+      {
+        "startMs": 373980,
+        "text": "Aslan yârim, kız, senin adın Hediye",
+        "endMs": 381450
+      },
+      {
+        "startMs": 381450,
+        "text": "Ben dolandım, sen de dolan, gel beriye",
+        "endMs": 388740
+      }
+    ]
+  },
+  {
+    "videoId": "t4DBc0z7ki4",
+    "title": "Havada Bulut Yok (Yemen Türküsü)",
+    "performer": "Doğa İçin Çal",
+    "durationSeconds": 379,
+    "enabled": true,
+    "language": "tr",
+    "provenance": {
+      "lyricsRights": "Public-domain traditional Turkish lyrics; anonymous",
+      "lyricsSource": "https://www.mus.gov.tr/mus-turkusu-mus",
+      "timingSource": "https://lrclib.net/api/get/12061306",
+      "recording": "https://www.youtube.com/watch?v=t4DBc0z7ki4",
+      "playback": "YouTube embedded player"
+    },
+    "cues": [
+      {
+        "startMs": 64640,
+        "text": "Havada bulut yok, bu ne dumandır?",
+        "endMs": 75320
+      },
+      {
+        "startMs": 75320,
+        "text": "Mahlede ölüm yok, bu ne şivandır?",
+        "endMs": 85850
+      },
+      {
+        "startMs": 85850,
+        "text": "Şu Yemen elleri ne de yamandır",
+        "endMs": 96500
+      },
+      {
+        "startMs": 96500,
+        "text": "Ano Yemen'dir, gülü çimendir",
+        "endMs": 103580
+      },
+      {
+        "startMs": 103580,
+        "text": "Giden gelmiyor, acep nedendir?",
+        "endMs": 114060
+      },
+      {
+        "startMs": 114060,
+        "text": "Burası Huş'tur, yolu yokuştur",
+        "endMs": 121180
+      },
+      {
+        "startMs": 121180,
+        "text": "Giden gelmiyor, acep ne iştir?",
+        "endMs": 130690
+      },
+      {
+        "startMs": 167140,
+        "text": "Kışlanın önünde redif sesi var",
+        "endMs": 177680
+      },
+      {
+        "startMs": 177680,
+        "text": "Bakın çantasında acep nesi var",
+        "endMs": 188220
+      },
+      {
+        "startMs": 188220,
+        "text": "Bir çift kundurayla bir de fesi var",
+        "endMs": 198950
+      },
+      {
+        "startMs": 198950,
+        "text": "Ano Yemen'dir, gülü çimendir",
+        "endMs": 206060
+      },
+      {
+        "startMs": 206060,
+        "text": "Giden gelmiyor, acep nedendir?",
+        "endMs": 213910
+      },
+      {
+        "startMs": 213910,
+        "text": "Ah, burası Muş'tur, yolu yokuştur",
+        "endMs": 223350
+      },
+      {
+        "startMs": 223350,
+        "text": "Giden gelmiyor, acep ne iştir?",
+        "endMs": 231250
+      },
+      {
+        "startMs": 231250,
+        "text": "Ah, ah, ah, ah, ah",
+        "endMs": 254690
+      },
+      {
+        "startMs": 269330,
+        "text": "Ano Yemen'dir, gülü çimendir",
+        "endMs": 276480
+      },
+      {
+        "startMs": 276480,
+        "text": "Giden gelmiyor, acep nedendir?",
+        "endMs": 287040
+      },
+      {
+        "startMs": 287040,
+        "text": "Burası Muş'tur, yolu yokuştur",
+        "endMs": 294200
+      },
+      {
+        "startMs": 294200,
+        "text": "Giden gelmiyor, acep ne iştir?",
+        "endMs": 304720
+      },
+      {
+        "startMs": 304720,
+        "text": "Ano Yemen'dir, gülü çimendir",
+        "endMs": 311740
+      },
+      {
+        "startMs": 311740,
+        "text": "Giden gelmiyor, acep nedendir?",
+        "endMs": 322380
+      },
+      {
+        "startMs": 322380,
+        "text": "Burası Huş'tur, yolu yokuştur",
+        "endMs": 329550
+      },
+      {
+        "startMs": 329550,
+        "text": "Giden gelmiyor, acep ne iştir?",
+        "endMs": 339930
+      },
+      {
+        "startMs": 339930,
+        "text": "Ano Yemen'dir, gülü çimendir",
+        "endMs": 347130
+      },
+      {
+        "startMs": 347130,
+        "text": "Giden gelmiyor, acep nedendir ah?",
+        "endMs": 357780
+      },
+      {
+        "startMs": 357780,
+        "text": "Burası Huş'tur, yolu yokuştur",
+        "endMs": 364750
+      },
+      {
+        "startMs": 364750,
+        "text": "Giden gelmiyor, acep ne iştir?",
+        "endMs": 374650
+      }
+    ]
+  }
+]

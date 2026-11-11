@@ -19,13 +19,21 @@ ve satırlar çakışmamalıdır. Yalnızca ilgili ülkelerde GPT ile işlenmesi
 etkinleştirin. Kayıt kimliği tam eşleşir, başka kliplerin sözleri kullanılmaz.
 Katalogda belge yoksa GPT çağrısı yapılmaz.
 
-Canlı katalog doğrulaması için adaylar [Barış Manço – Gülpembe (klip)](https://www.youtube.com/watch?v=CnfCUIvIXYc),
-[Tarkan – Şımarık](https://www.youtube.com/watch?v=cpp69ghR1IM) ve
-[Sezen Aksu – Gülümse](https://www.youtube.com/watch?v=qgfLk8Uksxo).
-Kayıt eşleşmesini ayrıca [Gülpembe'nin albüm sürümüyle](https://www.youtube.com/watch?v=9KKaNytN1rg)
-kontrol edin. Bu bağlantılar katalog kaydı veya kullanım izni yerine geçmez.
-Yerel otomatik testlerde özgün
-örnek sözler ve sahte GPT yanıtları kullanılır.
+Canlı Türkçe katalog 11 Kasım 2026'da üç anonim türküyle açıldı:
+
+- [Üsküdar’a Gider İken (Kâtibim) — Ezgi Köker](https://www.youtube.com/watch?v=CWOrDXnnmOc)
+- [Hey Onbeşli — Doğa İçin Çal](https://www.youtube.com/watch?v=80aWAOrE4GQ)
+- [Havada Bulut Yok (Yemen Türküsü) — Doğa İçin Çal](https://www.youtube.com/watch?v=t4DBc0z7ki4)
+
+Bu sürümlerin söz kaynakları ve LRCLIB zaman çizelgeleri
+`catalog/traditional-tr.json` dosyasında kayıtlıdır. Katalog anonim geleneksel
+sözleri ve zaman kodlarını içerir. Kayıtların kendisi YouTube oynatıcısında açılır.
+Bir bağlantıdaki `v` değeri katalogdaki video kimliğiyle eşleşmelidir.
+
+`node functions/test/live-song-subtitles.mjs --live` üç linkin gerçek Firebase
+işlevinden Rusça satır döndürdüğünü ve zaman kodlarını koruduğunu denetler.
+Bu komut canlı projede geçici bir kullanıcı ve odalar oluşturur, test sonunda
+bunları temizler ve önbellek boşsa GPT çağrısı yapar.
 
 Firebase emülatörleri çalışırken Android oda akışını denemek için:
 
@@ -34,7 +42,7 @@ node functions/test/seed-song-subtitles.mjs
 flutter drive --driver=test_driver/mobile.dart --target=integration_test/song_subtitle_flow_test.dart -d emulator-5558 --dart-define=USE_FIREBASE_EMULATORS=true
 ```
 
-Bu test yalnızca yerel Firebase'e örnek sözler ve önceden hazırlanmış Rusça
+Bu test yalnızca yerel Firebase'e özgün örnek sözler ve önceden hazırlanmış Rusça
 çeviri yazar. Videonun açılmasını, odanın beklemesini, diğer izleyiciden gelen
 ileri sarma komutunu ve altyazı düğmesini gerçek Android oynatıcısıyla sınar.
 
