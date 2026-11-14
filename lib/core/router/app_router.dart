@@ -8,9 +8,9 @@ import 'package:watchparty/feauters/profile/view/profile_page.dart';
 import 'package:watchparty/shared/party_ui.dart';
 
 class AppRouter {
-  static GoRouter createRouter() {
+  static GoRouter createRouter({String? initialRoomId}) {
     return GoRouter(
-      initialLocation: '/',
+      initialLocation: initialRoomId == null ? '/' : '/room/$initialRoomId',
       routes: [
         GoRoute(
             path: '/profile',
@@ -30,6 +30,7 @@ class AppRouter {
             final videoId = state.uri.queryParameters['videoId'] ?? '';
             return AuthGate(
               builder: (_, user) => WatchRoomPage(
+                key: ValueKey((roomId, user.uid)),
                 roomId: roomId,
                 videoId: videoId,
                 userId: user.uid,

@@ -20,6 +20,7 @@ import 'package:watchparty/models/user_model.dart';
 import 'package:watchparty/services/auth_service.dart';
 import 'package:watchparty/services/media_service.dart';
 import 'package:watchparty/services/message_service.dart';
+import 'package:watchparty/services/room_session.dart';
 import 'package:watchparty/services/song_subtitle_service.dart';
 import 'package:watchparty/services/user_service.dart';
 import 'package:watchparty/services/voice_room_service.dart';
@@ -45,6 +46,7 @@ class WatchRoomPage extends StatefulWidget {
 class _WatchRoomPageState extends State<WatchRoomPage>
     with WidgetsBindingObserver {
   late final RoomService _service;
+  late final RoomSession _session;
   late final MessageService _messageService;
   final _chat = TextEditingController();
   final _voice = VoiceRoomService();
@@ -56,6 +58,11 @@ class _WatchRoomPageState extends State<WatchRoomPage>
   StreamSubscription<YoutubePlayerValue>? _playerSub;
   StreamSubscription<YoutubeVideoState>? _positionSub;
   StreamSubscription<Map<String, DateTime>>? _readSub;
+  StreamSubscription<List<Map<String, dynamic>>>? _typingSub;
+  List<Map<String, dynamic>> _typingPeople = const [];
+  Timer? _typingIdle, _typingExpiry;
+  DateTime? _lastTypingWrite;
+  String _previousDraft = '';
   Map<String, DateTime> _readThrough = {};
   Stream<List<MessageModel>>? _messages;
   Stream<List<Map<String, dynamic>>>? _presence;
@@ -94,8 +101,13 @@ class _WatchRoomPageState extends State<WatchRoomPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    _active = lifecycle == null || lifecycle == AppLifecycleState.resumed;
     _service = context.read<RoomService>();
+    _session = context.read<RoomSession>();
+    _session.notificationChat.addListener(_showNotificationChat);
     _messageService = context.read<MessageService>();
+    _chat.addListener(_draftChanged);
     _bootstrap();
   }
 
@@ -190,6 +202,7 @@ class _WatchRoomPageState extends State<WatchRoomPage>
     try {
       final room = await _service.getRoom(widget.roomId);
       if (room == null || room.videoId.isEmpty) {
+        _session.forget(widget.userId, widget.roomId);
         throw StateError('room-not-found');
       }
       await _service.addParticipant(widget.roomId, widget.userId);
@@ -212,6 +225,8 @@ class _WatchRoomPageState extends State<WatchRoomPage>
       _muted = _movieVolume.value == 0;
       if (!_muted) _unmutedMovieVolume = _movieVolume.value;
       _room = room;
+      unawaited(_session.remember(widget.userId, room.id,
+          context.read<AppLocaleController>().languageCode));
       _loadedVideo = room.videoId;
       _position = calculateTargetPlaybackSeconds(
           storedSeconds: room.currentTime,
@@ -226,6 +241,11 @@ class _WatchRoomPageState extends State<WatchRoomPage>
       }, onError: (Object _) {});
       _messages = _messageService.getMessagesStream(widget.roomId);
       _presence = _service.presenceStream(widget.roomId);
+      _typingSub = _service.typingStream(widget.roomId).listen((people) {
+        if (!mounted) return;
+        _typingPeople = people;
+        _expireTyping();
+      }, onError: (Object _) {});
       _roomSub = _service.roomStream(widget.roomId).listen((room) {
         if (!mounted) return;
         final changedVideo = room.videoId != _subtitleVideo ||
@@ -434,6 +454,84 @@ class _WatchRoomPageState extends State<WatchRoomPage>
       await _service.heartbeat(widget.roomId, _profile!, active: _active);
     } catch (_) {}
     if (mounted) setState(() {});
+  }
+
+  void _draftChanged() {
+    final draft = _chat.text;
+    if (_previousDraft == draft) return;
+    _previousDraft = draft;
+    final profile = _profile;
+    if (profile == null ||
+        !_active ||
+        _tab != 0 ||
+        _fullscreen ||
+        draft.trim().isEmpty) {
+      _stopTyping();
+      return;
+    }
+    final now = DateTime.now();
+    if (_lastTypingWrite == null ||
+        now.difference(_lastTypingWrite!) >= const Duration(seconds: 2)) {
+      _lastTypingWrite = now;
+      unawaited(_service
+          .setTyping(widget.roomId, profile, true)
+          .catchError((Object _) {}));
+    }
+    _typingIdle?.cancel();
+    _typingIdle = Timer(const Duration(seconds: 3), _stopTyping);
+  }
+
+  void _stopTyping() {
+    _typingIdle?.cancel();
+    if (_lastTypingWrite == null) return;
+    _lastTypingWrite = null;
+    final profile = _profile;
+    if (profile != null) {
+      unawaited(_service
+          .setTyping(widget.roomId, profile, false)
+          .catchError((Object _) {}));
+    }
+  }
+
+  static const _typingLifetime = Duration(seconds: 6);
+  List<String> get _typingNames => _typingPeople
+      .where((person) {
+        final updatedAt = person['updatedAt'];
+        return person['userId'] != widget.userId &&
+            person['name'] is String &&
+            updatedAt is Timestamp &&
+            DateTime.now().difference(updatedAt.toDate()) < _typingLifetime;
+      })
+      .map((person) => person['name'] as String)
+      .toList();
+
+  void _expireTyping() {
+    _typingExpiry?.cancel();
+    final now = DateTime.now();
+    final times = _typingPeople
+        .map((person) => person['updatedAt'])
+        .whereType<Timestamp>()
+        .map((stamp) => stamp.toDate().add(_typingLifetime).difference(now))
+        .where((remaining) => remaining > Duration.zero)
+        .toList()
+      ..sort();
+    if (times.isNotEmpty) {
+      _typingExpiry = Timer(times.first, _expireTyping);
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _leaveRoom() {
+    _stopTyping();
+    unawaited(
+        _session.leave(widget.userId, widget.roomId).catchError((Object _) {}));
+    context.go('/');
+  }
+
+  void _showNotificationChat() {
+    if (_session.notificationChat.value != widget.roomId) return;
+    if (_fullscreen) _toggleFullscreen();
+    if (_tab != 0) setState(() => _tab = 0);
   }
 
   void _scheduleSync({bool force = false}) {
@@ -845,12 +943,14 @@ class _WatchRoomPageState extends State<WatchRoomPage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     _active = state == AppLifecycleState.resumed;
+    if (!_active) _stopTyping();
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       unawaited(_voice.leave());
     }
     _beat();
     if (_active) {
+      _session.refreshNotifications();
       if (_playbackFailure != null && !_startingPlayer && _player != null) {
         unawaited(_retryPlayer());
       } else {
@@ -868,6 +968,11 @@ class _WatchRoomPageState extends State<WatchRoomPage>
     _roomSub?.cancel();
     _positionSub?.cancel();
     _readSub?.cancel();
+    _typingSub?.cancel();
+    _session.notificationChat.removeListener(_showNotificationChat);
+    _typingExpiry?.cancel();
+    _chat.removeListener(_draftChanged);
+    _stopTyping();
     _playerSub?.cancel();
     _player?.close();
     if (_fullscreen) {
@@ -876,9 +981,6 @@ class _WatchRoomPageState extends State<WatchRoomPage>
     _voice.dispose();
     _movieVolume.dispose();
     _chat.dispose();
-    _service
-        .removeParticipant(widget.roomId, widget.userId)
-        .catchError((Object e) {});
     super.dispose();
   }
 
@@ -972,120 +1074,127 @@ class _WatchRoomPageState extends State<WatchRoomPage>
                         icon: const Icon(Icons.fullscreen_exit_rounded))),
               ]))));
         }
-        return Scaffold(
-            resizeToAvoidBottomInset: true,
-            appBar: AppBar(
-                toolbarHeight: keyboardOpen ? 40 : kToolbarHeight,
-                leading: IconButton(
-                    tooltip: l(
-                        context,
-                        'Odadan ayrıl',
-                        'Leave room',
-                        'Выйти из комнаты',
-                        "Raum verlassen",
-                        "Salir de la sala"),
-                    icon: const Icon(Icons.arrow_back_rounded, size: 22),
-                    onPressed: () => context.go('/')),
-                titleSpacing: 0,
-                title: InkWell(
-                    onTap: _copyCode,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                              l(
+        return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, _) {
+              if (!didPop) _leaveRoom();
+            },
+            child: Scaffold(
+                resizeToAvoidBottomInset: true,
+                appBar: AppBar(
+                    toolbarHeight: keyboardOpen ? 40 : kToolbarHeight,
+                    leading: IconButton(
+                        tooltip: l(
+                            context,
+                            'Odadan ayrıl',
+                            'Leave room',
+                            'Выйти из комнаты',
+                            "Raum verlassen",
+                            "Salir de la sala"),
+                        icon: const Icon(Icons.arrow_back_rounded, size: 22),
+                        onPressed: _leaveRoom),
+                    titleSpacing: 0,
+                    title: InkWell(
+                        onTap: _copyCode,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  l(
+                                      context,
+                                      'BİZİM İZLEME ODAMIZ',
+                                      'OUR WATCH ROOM',
+                                      'НАША КОМНАТА',
+                                      "UNSER GEMEINSAMER RAUM",
+                                      "NUESTRA SALA"),
+                                  style: const TextStyle(
+                                      fontSize: 8,
+                                      color: Colors.white38,
+                                      letterSpacing: 1.6)),
+                              const SizedBox(height: 2),
+                              Row(mainAxisSize: MainAxisSize.min, children: [
+                                Text(widget.roomId,
+                                    style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 2)),
+                                const SizedBox(width: 6),
+                                const Icon(Icons.content_copy_rounded,
+                                    size: 11, color: Colors.white38)
+                              ])
+                            ])),
+                    actions: [
+                      ListenableBuilder(
+                          listenable: _voice,
+                          builder: (context, _) => IconButton(
+                              key: const Key('open-voice-chat'),
+                              tooltip: l(
                                   context,
-                                  'BİZİM İZLEME ODAMIZ',
-                                  'OUR WATCH ROOM',
-                                  'НАША КОМНАТА',
-                                  "UNSER GEMEINSAMER RAUM",
-                                  "NUESTRA SALA"),
-                              style: const TextStyle(
-                                  fontSize: 8,
-                                  color: Colors.white38,
-                                  letterSpacing: 1.6)),
-                          const SizedBox(height: 2),
-                          Row(mainAxisSize: MainAxisSize.min, children: [
-                            Text(widget.roomId,
-                                style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 2)),
-                            const SizedBox(width: 6),
-                            const Icon(Icons.content_copy_rounded,
-                                size: 11, color: Colors.white38)
-                          ])
-                        ])),
-                actions: [
-                  ListenableBuilder(
-                      listenable: _voice,
-                      builder: (context, _) => IconButton(
-                          key: const Key('open-voice-chat'),
+                                  'Sesli sohbet ve ses ayarları',
+                                  'Voice chat and volume',
+                                  'Голосовой чат и громкость',
+                                  'Sprachchat und Lautstärke',
+                                  'Chat de voz y volumen'),
+                              onPressed: _voiceSheet,
+                              icon: Badge(
+                                  isLabelVisible: _voice.joined,
+                                  smallSize: 7,
+                                  backgroundColor: PartyColors.lime,
+                                  child: Icon(
+                                      _voice.microphoneEnabled
+                                          ? Icons.mic_rounded
+                                          : Icons.headphones_rounded,
+                                      color: _voice.joined
+                                          ? PartyColors.lime
+                                          : Colors.white70,
+                                      size: 22)))),
+                      IconButton(
                           tooltip: l(
                               context,
-                              'Sesli sohbet ve ses ayarları',
-                              'Voice chat and volume',
-                              'Голосовой чат и громкость',
-                              'Sprachchat und Lautstärke',
-                              'Chat de voz y volumen'),
-                          onPressed: _voiceSheet,
-                          icon: Badge(
-                              isLabelVisible: _voice.joined,
-                              smallSize: 7,
-                              backgroundColor: PartyColors.lime,
-                              child: Icon(
-                                  _voice.microphoneEnabled
-                                      ? Icons.mic_rounded
-                                      : Icons.headphones_rounded,
-                                  color: _voice.joined
-                                      ? PartyColors.lime
-                                      : Colors.white70,
-                                  size: 22)))),
-                  IconButton(
-                      tooltip: l(
+                              'Arkadaşını davet et',
+                              'Invite your friend',
+                              'Пригласить друга',
+                              "Lade jemanden ein",
+                              "Invita a alguien"),
+                          onPressed: _invite,
+                          icon: const Icon(Icons.ios_share_rounded, size: 20)),
+                      const SizedBox(width: 10)
+                    ]),
+                body: SafeArea(
+                    top: false,
+                    bottom: false,
+                    child: LayoutBuilder(builder: (context, c) {
+                      final wide = c.maxWidth > 760;
+                      final stage = _stage(
                           context,
-                          'Arkadaşını davet et',
-                          'Invite your friend',
-                          'Пригласить друга',
-                          "Lade jemanden ein",
-                          "Invita a alguien"),
-                      onPressed: _invite,
-                      icon: const Icon(Icons.ios_share_rounded, size: 20)),
-                  const SizedBox(width: 10)
-                ]),
-            body: SafeArea(
-                top: false,
-                bottom: false,
-                child: LayoutBuilder(builder: (context, c) {
-                  final wide = c.maxWidth > 760;
-                  final stage = _stage(
-                      context,
-                      wide ? c.maxWidth * .55 : c.maxWidth,
-                      (keyboardOpen || c.maxHeight < 420));
-                  return wide
-                      ? Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                          wide ? c.maxWidth * .55 : c.maxWidth,
+                          (keyboardOpen || c.maxHeight < 420));
+                      return wide
+                          ? Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                  Expanded(
+                                      flex: 55,
+                                      child:
+                                          SingleChildScrollView(child: stage)),
+                                  const VerticalDivider(width: 1),
+                                  Expanded(
+                                      flex: 45,
+                                      child: _conversation(context,
+                                          compact: keyboardOpen))
+                                ])
+                          : Column(children: [
+                              stage,
                               Expanded(
-                                  flex: 55,
-                                  child: SingleChildScrollView(child: stage)),
-                              const VerticalDivider(width: 1),
-                              Expanded(
-                                  flex: 45,
                                   child: _conversation(context,
                                       compact: keyboardOpen))
-                            ])
-                      : Column(children: [
-                          stage,
-                          Expanded(
-                              child:
-                                  _conversation(context, compact: keyboardOpen))
-                        ]);
-                })));
+                            ]);
+                    }))));
       }));
 
   void _toggleFullscreen() {
     FocusScope.of(context).unfocus();
+    _stopTyping();
     setState(() => _fullscreen = !_fullscreen);
     SystemChrome.setEnabledSystemUIMode(
         _fullscreen ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge);
@@ -1485,7 +1594,10 @@ class _WatchRoomPageState extends State<WatchRoomPage>
                 ].indexed)
                   Expanded(
                       child: InkWell(
-                          onTap: () => setState(() => _tab = item.$1),
+                          onTap: () {
+                            if (item.$1 != 0) _stopTyping();
+                            setState(() => _tab = item.$1);
+                          },
                           child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 13),
                               decoration: BoxDecoration(
@@ -1545,6 +1657,7 @@ class _WatchRoomPageState extends State<WatchRoomPage>
                           onMessageVisible: (message) => _messageService
                               .markRead(widget.roomId, widget.userId, message),
                           controller: _chat,
+                          typingNames: _typingNames,
                           onSendText: _sendText,
                           onPickImage: _pickPhoto,
                           onSendAudio: _sendAudio,

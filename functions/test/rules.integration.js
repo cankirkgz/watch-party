@@ -20,6 +20,24 @@ function observes(db, predicate) {
   return new Promise((resolve,reject) => { let stop; const timeout = setTimeout(() => {stop?.();reject(new Error('Room did not synchronise'));},5000); stop=onSnapshot(doc(db,'rooms/ABC234'),snapshot=>{if(predicate(snapshot.data())) {clearTimeout(timeout);stop?.();resolve(snapshot.data());}},reject); });
 }
 
+test('only the member can publish typing and register a private notification device', async () => {
+  const {alice, bob} = await setup();
+  const a = alice.firestore(), b = bob.firestore();
+  const typing = 'rooms/ABC234/typing/alice';
+  const draft = {name:'Alice',updatedAt:serverTimestamp()};
+  await assertSucceeds(setDoc(doc(a,typing),draft));
+  await assertSucceeds(getDoc(doc(b,typing)));
+  await assertFails(setDoc(doc(b,typing),draft));
+  await assertFails(setDoc(doc(a,typing),{...draft,message:'private draft'}));
+  const deviceId = '9123abcd-bcde-45ed-adec-abcdef123456';
+  const path = `rooms/ABC234/notificationMembers/alice/devices/${deviceId}`;
+  const device = {userId:'alice',deviceId,language:'tr',token:'mock-notification-token-1234'};
+  await assertSucceeds(setDoc(doc(a,path),device));
+  await assertFails(getDoc(doc(a,path)));
+  await assertFails(getDoc(doc(b,path)));
+  await assertFails(setDoc(doc(b,path),{...device,userId:'bob'}));
+});
+
 test('read cursor is visible to the sender, belongs to the reader, and cannot acknowledge future or forged messages', async () => {
   const {alice, bob} = await setup();
   const a = alice.firestore(), b = bob.firestore();

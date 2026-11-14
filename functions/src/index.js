@@ -1,11 +1,14 @@
 import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { onCall, HttpsError } from 'firebase-functions/v2/https';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { getMessaging } from 'firebase-admin/messaging';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import OpenAI from 'openai';
 import { validateTranslationRequest, translationInstructions, consumeRateWindow, languages } from './translation.js';
 import { validateVoiceRoomId, createVoiceToken } from './voice.js';
 import { readLyrics, lyricsRevision, translateLyrics, videoIdPattern } from './lyrics.js';
+import { notifyRoomChat } from './room-notifications.js';
 
 initializeApp();
 const db = getFirestore();
@@ -13,6 +16,13 @@ const apiKey = defineSecret('OPENAI_API_KEY');
 const model = defineString('TRANSLATION_MODEL', { default: 'gpt-4.1-mini' });
 const voiceConfig = defineSecret('LIVEKIT_CONFIG');
 const pendingLyrics = new Map();
+
+export const sendRoomChatNotification = onDocumentCreated({
+  document: 'rooms/{roomId}/messages/{messageId}', region: 'europe-west1',
+  timeoutSeconds: 30, memory: '256MiB', maxInstances: 3,
+}, async event => {
+  if (event.data) await notifyRoomChat(event.data, getMessaging());
+});
 
 export const prepareSongSubtitles = onCall({
   region: 'europe-west1', invoker: 'public', secrets: [apiKey],

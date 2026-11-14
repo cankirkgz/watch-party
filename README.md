@@ -2,6 +2,21 @@
 
 Flutter ile Android ve iOS için senkron YouTube izleme ve çok dilli sohbet uygulaması. Mevcut Firebase projesi: `watch-party-d4610`.
 
+### 1.3.0 oda ve sohbet bildirimleri
+
+- Sohbette yazan kişinin adı görünür. Gösterge yazmaya ara verildiğinde,
+  gönderimden sonra veya uygulama arka plana geçince kaybolur.
+- Uygulama arka plana geçtiğinde son oda cihazda hesap bazında saklanır.
+  Oda hâlâ varsa uygulamayı yeniden açınca geri yüklenir. Odadan ayrılma
+  düğmesi cihazdaki kaydı ve oda üyeliğini kaldırır.
+- Bildirim izni verilen Android ve iOS cihazlar arka planda oda mesajı
+  bildirimi alır. Bildirime dokununca oda sohbeti açılır. Mesaj metni
+  bildirime eklenmez.
+
+Sunucu güncellemesi için `firebase deploy --only firestore:rules,functions:watchparty:sendRoomChatNotification --project watch-party-d4610` çalıştırılır.
+iOS dağıtımında Firebase Cloud Messaging'e uygulamanın APNs anahtarı
+tanımlanmalı ve uygulama Push Notifications yetkisiyle imzalanmalıdır.
+
 ### Şarkı altyazısı
 
 İzleyiciler her zamanki gibi YouTube bağlantısıyla odaya girer. Şarkı sözleri

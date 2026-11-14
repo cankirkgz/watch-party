@@ -25,6 +25,7 @@ class ChatPanel extends StatefulWidget {
       this.isActive = true,
       this.readThrough = const {},
       this.onMessageVisible,
+      this.typingNames = const [],
       this.onReply,
       this.replyTo,
       this.onClearReply,
@@ -40,6 +41,7 @@ class ChatPanel extends StatefulWidget {
   final DateTime? joinedAt;
   final bool isActive;
   final Map<String, DateTime> readThrough;
+  final List<String> typingNames;
   final Future<void> Function(MessageModel message)? onMessageVisible;
   final String? replyTo;
   final ValueChanged<MessageModel>? onReply;
@@ -238,6 +240,34 @@ class _ChatPanelState extends State<ChatPanel> with WidgetsBindingObserver {
                                     onReply: _replyTo,
                                     onSeek: widget.onSeek,
                                   ))))),
+              if (widget.typingNames.isNotEmpty)
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
+                    child: Text(
+                      widget.typingNames.length == 1
+                          ? l(
+                              context,
+                              '${widget.typingNames.first} yazıyor…',
+                              '${widget.typingNames.first} is typing…',
+                              '${widget.typingNames.first} печатает…',
+                              '${widget.typingNames.first} schreibt…',
+                              '${widget.typingNames.first} está escribiendo…')
+                          : l(
+                              context,
+                              'Birden fazla kişi yazıyor…',
+                              'Several people are typing…',
+                              'Несколько человек печатают…',
+                              'Mehrere Personen schreiben…',
+                              'Varias personas están escribiendo…'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          color: PartyColors.lime, fontSize: 11),
+                    ),
+                  ),
+                ),
               ChatInputBar(
                   controller: widget.controller,
                   focusNode: _inputFocus,

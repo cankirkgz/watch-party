@@ -6,12 +6,13 @@ import 'package:watchparty/services/user_service.dart';
 class AuthService extends ChangeNotifier {
   bool _preparing = false;
   bool get isPreparing => _preparing;
-  AuthService({FirebaseAuth? auth, UserService? userService})
+  AuthService({FirebaseAuth? auth, UserService? userService, this.onSignOut})
       : _auth = auth ?? FirebaseAuth.instance,
         _userService = userService ?? UserService();
 
   final FirebaseAuth _auth;
   final UserService _userService;
+  final Future<void> Function(String userId)? onSignOut;
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
   User? get currentUser => _auth.currentUser;
@@ -84,5 +85,9 @@ class AuthService extends ChangeNotifier {
     );
   }
 
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    final userId = currentUser?.uid;
+    if (userId != null) await onSignOut?.call(userId);
+    await _auth.signOut();
+  }
 }

@@ -51,14 +51,54 @@ class RoomService {
         'lastSeenAt': FieldValue.serverTimestamp(),
         if (subtitlesReadyFor != null) 'subtitlesReadyFor': subtitlesReadyFor,
       }, SetOptions(merge: true));
-  Future<void> removeParticipant(String roomId, String userId) async {
+  DocumentReference<Map<String, dynamic>> _notificationDevice(
+          String roomId, String userId, String deviceId) =>
+      _room(roomId)
+          .collection('notificationMembers')
+          .doc(userId)
+          .collection('devices')
+          .doc(deviceId);
+
+  Future<void> saveNotificationDevice(String roomId, String userId,
+          String deviceId, String token, String language) =>
+      _notificationDevice(roomId, userId, deviceId).set({
+        'userId': userId,
+        'deviceId': deviceId,
+        'token': token,
+        'language': language,
+      });
+
+  Future<void> removeNotificationDevice(
+          String roomId, String userId, String deviceId) =>
+      _notificationDevice(roomId, userId, deviceId).delete();
+
+  Future<void> removeParticipant(String roomId, String userId,
+      {String? notificationDeviceId}) async {
     final batch = _firestore.firestore.batch();
     batch.delete(_room(roomId).collection('presence').doc(userId));
+    batch.delete(_room(roomId).collection('typing').doc(userId));
+    if (notificationDeviceId != null) {
+      batch.delete(_notificationDevice(roomId, userId, notificationDeviceId));
+    }
     batch.update(_room(roomId), {
       'participants': FieldValue.arrayRemove([userId])
     });
     await batch.commit();
   }
+
+  Future<void> setTyping(String roomId, UserModel user, bool typing) {
+    final ref = _room(roomId).collection('typing').doc(user.id);
+    return typing
+        ? ref
+            .set({'name': user.name, 'updatedAt': FieldValue.serverTimestamp()})
+        : ref.delete();
+  }
+
+  Stream<List<Map<String, dynamic>>> typingStream(String roomId) =>
+      _room(roomId).collection('typing').snapshots().map((snapshot) => snapshot
+          .docs
+          .map((doc) => {...doc.data(), 'userId': doc.id})
+          .toList());
 
   Stream<List<Map<String, dynamic>>> presenceStream(String roomId,
           {bool serverOnly = false}) =>

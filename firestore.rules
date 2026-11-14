@@ -55,6 +55,28 @@ service cloud.firestore {
           && request.resource.data.name.size() <= 60 && request.resource.data.active is bool;
         allow delete: if signedIn() && request.auth.uid == userId;
       }
+      match /typing/{userId} {
+        allow read: if member(roomId);
+        allow create, update: if member(roomId) && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['name', 'updatedAt'])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
+      match /notificationMembers/{userId}/devices/{deviceId} {
+        allow read: if false;
+        allow create, update: if member(roomId) && request.auth.uid == userId
+          && request.resource.data.keys().hasOnly(['userId', 'deviceId', 'token', 'language'])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.deviceId is string
+          && request.resource.data.deviceId.matches('[a-f0-9-]{36}')
+          && deviceId == request.resource.data.deviceId
+          && request.resource.data.token is string
+          && request.resource.data.token.size() >= 20 && request.resource.data.token.size() <= 4096
+          && request.resource.data.language in ['tr', 'en', 'ru', 'de', 'es'];
+        allow delete: if signedIn() && request.auth.uid == userId;
+      }
       match /readReceipts/{userId} {
         allow read: if member(roomId);
         allow create, update: if member(roomId) && request.auth.uid == userId

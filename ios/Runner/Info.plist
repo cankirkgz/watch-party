@@ -49,6 +49,8 @@
 	<string>Allow photo library access to share photos in the chat.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Allow camera access to take photos to share in the chat.</string>
+	<key>UIBackgroundModes</key>
+	<array><string>remote-notification</string></array>
 	<key>CFBundleURLTypes</key>
 	<array><dict><key>CFBundleURLSchemes</key><array><string>watchparty</string></array></dict></array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
