@@ -40,12 +40,22 @@ service cloud.firestore {
           && request.resource.data.type in ['text', 'image', 'audio']
           && request.resource.data.text is string && request.resource.data.text.size() <= 2000
           && request.resource.data.senderName is string && request.resource.data.senderName.size() <= 60
-          && request.resource.data.reactions == {};
+          && request.resource.data.reactions == {}
+          && !('editedAt' in request.resource.data);
         allow update: if member(roomId)
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
-          && request.resource.data.reactions is map
-          && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([request.auth.uid])
-          && (!(request.auth.uid in request.resource.data.reactions) || request.resource.data.reactions[request.auth.uid] in ['❤️', '😂', '🔥', '👏', '😮', '👍', '😍', '🥰', '😘', '🤣', '😅', '😭', '🥹', '😎', '🤔', '😱', '😢', '😡', '🤯', '🙌', '🙏', '💯', '🎉', '✨', '💔', '👀', '🤝', '😴', '🍿', '🎬', '🚀', '👎']);
+          && (
+            (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+              && request.resource.data.reactions is map
+              && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([request.auth.uid])
+              && (!(request.auth.uid in request.resource.data.reactions) || request.resource.data.reactions[request.auth.uid] in ['❤️', '😂', '🔥', '👏', '😮', '👍', '😍', '🥰', '😘', '🤣', '😅', '😭', '🥹', '😎', '🤔', '😱', '😢', '😡', '🤯', '🙌', '🙏', '💯', '🎉', '✨', '💔', '👀', '🤝', '😴', '🍿', '🎬', '🚀', '👎']))
+            ||
+            (request.auth.uid == resource.data.senderId && resource.data.get('type', 'text') == 'text'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
+              && request.resource.data.text is string && request.resource.data.text.size() <= 2000
+              && request.resource.data.text.matches('[\\s\\S]*\\S[\\s\\S]*')
+              && request.resource.data.text != resource.data.text
+              && request.resource.data.editedAt == request.time)
+          );
         allow delete: if false;
       }
       match /presence/{userId} {

@@ -8,6 +8,7 @@ class MessageModel {
     required this.senderId,
     required this.senderName,
     required this.sentAt,
+    this.editedAt,
     required this.roomId,
     this.type = MessageType.text,
     this.text = '',
@@ -28,6 +29,7 @@ class MessageModel {
   final String senderId;
   final String senderName;
   final DateTime sentAt;
+  final DateTime? editedAt;
   final String roomId;
   final MessageType type;
   final String text;
@@ -76,6 +78,7 @@ class MessageModel {
       senderId: map['senderId'] as String? ?? '',
       senderName: map['senderName'] as String? ?? 'Guest',
       sentAt: _parseDate(map['sentAt']) ?? DateTime.now(),
+      editedAt: _parseDate(map['editedAt']),
       roomId: map['roomId'] as String? ?? '',
       type: MessageType.values.firstWhere(
         (type) => type.name == typeName,

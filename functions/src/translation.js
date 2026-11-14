@@ -1,4 +1,13 @@
+import { createHash } from 'node:crypto';
+
 export const languages = new Set(['tr', 'en', 'ru', 'de', 'fr', 'es', 'it', 'pt', 'ar', 'ja', 'ko', 'zh', 'uk', 'nl', 'pl', 'hi', 'fa', 'id', 'az', 'el']);
+
+export function messageTranslationKey(messageId, targetLanguage, message) {
+  const key = `${messageId}_${targetLanguage}`;
+  if (!message.editedAt) return key;
+  const hash = createHash('sha256').update(message.text).digest('hex');
+  return `${key}_${hash}`;
+}
 
 export function validateTranslationRequest(data) {
   if (!data || !/^[A-Z0-9]{6}$/.test(data.roomId ?? '') || !/^[A-Za-z0-9_-]{1,128}$/.test(data.messageId ?? '') || !languages.has(data.targetLanguage)) {

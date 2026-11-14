@@ -98,6 +98,36 @@ test('the shared queue can change the video without losing room members', async 
   assert.deepEqual((await getDoc(doc(bob.firestore(),'rooms/ABC234'))).data().participants,['alice','bob']);
   await assertFails(updateDoc(doc(bob.firestore(),'rooms/ABC234'),{createdBy:'bob'}));
 });
+test('only the sender can change a text message and the original metadata stays intact', async () => {
+  const {alice, bob} = await setup();
+  const path = 'rooms/ABC234/messages/editable';
+  const a = doc(alice.firestore(), path), b = doc(bob.firestore(), path);
+  const original = {senderId:'alice', senderName:'Alice', type:'text', text:'First',
+    sentAt:serverTimestamp(), reactions:{}, videoSeconds:15, replyToMessageId:'previous'};
+  await assertFails(setDoc(a, {...original, editedAt:serverTimestamp()}));
+  await assertSucceeds(setDoc(a, original));
+  await assertSucceeds(updateDoc(b, {'reactions.bob':'❤️'}));
+  const before = (await getDoc(b)).data();
+  const edit = {text:'Fixed\nmessage', editedAt:serverTimestamp()};
+  await assertFails(updateDoc(b, edit));
+  await assertFails(updateDoc(a, {...edit, text:'  \n\t '}));
+  await assertFails(updateDoc(a, {...edit, text:'x'.repeat(2001)}));
+  await assertFails(updateDoc(a, {text:edit.text}));
+  await assertFails(updateDoc(a, {...edit, editedAt:before.sentAt}));
+  await assertFails(updateDoc(a, {...edit, sentAt:serverTimestamp()}));
+  await assertSucceeds(updateDoc(a, edit));
+  const {text, editedAt, ...metadata} = (await getDoc(b)).data();
+  const {text: originalText, ...originalMetadata} = before;
+  assert.equal(originalText, 'First');
+  assert.equal(text, edit.text);
+  assert.ok(editedAt.toMillis() >= before.sentAt.toMillis());
+  assert.deepEqual(metadata, originalMetadata);
+  await assertSucceeds(updateDoc(b, {'reactions.bob':'👍'}));
+
+  const photo = doc(alice.firestore(), 'rooms/ABC234/messages/photo-edit');
+  await assertSucceeds(setDoc(photo, {...original, type:'image', text:''}));
+  await assertFails(updateDoc(photo, edit));
+});
 test('media storage accepts member photos/audio and rejects outsiders, path spoofing and executable content', async () => {
   const {alice,bob}=await setup(); const outsider=env.authenticatedContext('outsider');
   const bytes=new Uint8Array([137,80,78,71,13,10,26,10]);

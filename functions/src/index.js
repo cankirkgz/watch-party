@@ -5,7 +5,7 @@ import { onDocumentCreated } from 'firebase-functions/v2/firestore';
 import { getMessaging } from 'firebase-admin/messaging';
 import { defineSecret, defineString } from 'firebase-functions/params';
 import OpenAI from 'openai';
-import { validateTranslationRequest, translationInstructions, consumeRateWindow, languages } from './translation.js';
+import { validateTranslationRequest, translationInstructions, consumeRateWindow, languages, messageTranslationKey } from './translation.js';
 import { validateVoiceRoomId, createVoiceToken } from './voice.js';
 import { readLyrics, lyricsRevision, translateLyrics, videoIdPattern } from './lyrics.js';
 import { notifyRoomChat } from './room-notifications.js';
@@ -122,7 +122,7 @@ export const translateMessage = onCall({ region: 'europe-west1', invoker: 'publi
   if (!roomSnapshot.exists || !roomSnapshot.data().participants?.includes(request.auth.uid)) throw new HttpsError('permission-denied', 'Join the room first.');
   const message = messageSnapshot.data();
   if (!message || (message.type ?? 'text') !== 'text' || typeof message.text !== 'string' || !message.text.trim() || message.text.length > 2000) throw new HttpsError('invalid-argument', 'Only text messages up to 2000 characters can be translated.');
-  const cachedRef = room.collection('_translations').doc(`${messageId}_${targetLanguage}`);
+  const cachedRef = room.collection('_translations').doc(messageTranslationKey(messageId, targetLanguage, message));
   const cached = await cachedRef.get();
   if (cached.exists) return { text: cached.data().text, provider: 'GPT', cached: true };
   try {

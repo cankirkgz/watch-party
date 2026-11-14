@@ -12,6 +12,7 @@ import 'package:watchparty/core/localization/app_locale_controller.dart';
 import 'package:watchparty/core/theme/party_theme.dart';
 import 'package:watchparty/feauters/auth/view/auth_page.dart';
 import 'package:watchparty/models/message_model.dart';
+import 'package:watchparty/services/message_service.dart';
 import 'package:watchparty/services/translation_service.dart';
 import 'package:watchparty/shared/molecules/chat_message_bubble.dart';
 
@@ -21,6 +22,19 @@ const _delegates = [
   GlobalCupertinoLocalizations.delegate,
   CountryLocalizations.delegate
 ];
+
+class _EditMessageService implements MessageService {
+  String? savedText;
+
+  @override
+  Future<void> editMessage(MessageModel message, String text) async {
+    expect(message.id, 'message-id');
+    savedText = text;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -78,9 +92,58 @@ void main() {
       await tester.longPress(find.text('Этот момент просто невероятный 😂'));
       await tester.pumpAndSettle();
       expect(find.text(item.$3), findsOneWidget);
+      expect(find.byIcon(Icons.edit_outlined), findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('long-press opens a prefilled editor and saves changed text',
+      (tester) async {
+    final edits = _EditMessageService();
+    await tester.pumpWidget(MultiProvider(
+      providers: [
+        Provider<TranslationService>(create: (_) => TranslationService()),
+        Provider<MessageService>.value(value: edits),
+      ],
+      child: MaterialApp(
+        locale: const Locale('tr'),
+        supportedLocales: AppLocaleController.supportedLocales,
+        localizationsDelegates: _delegates,
+        home: Scaffold(
+          body: ChatMessageBubble(
+            isMine: true,
+            message: MessageModel(
+              id: 'message-id',
+              senderId: 'me',
+              senderName: 'Me',
+              sentAt: DateTime(2026),
+              roomId: 'ABC234',
+              text: 'İlk mesaj',
+            ),
+          ),
+        ),
+      ),
+    ));
+
+    await tester.pumpAndSettle();
+    await tester.longPress(find.text('İlk mesaj'));
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('❤️'), findsOneWidget);
+    await tester.tap(find.text('Düzenle'));
+    await tester.pumpAndSettle();
+    final input = find.byKey(const Key('edit-message-input'));
+    expect(tester.widget<TextFormField>(input).initialValue, 'İlk mesaj');
+    final save = find.widgetWithText(FilledButton, 'Kaydet');
+    expect(tester.widget<FilledButton>(save).onPressed, isNull);
+    await tester.enterText(input, '  ');
+    await tester.pump();
+    expect(tester.widget<FilledButton>(save).onPressed, isNull);
+    await tester.enterText(input, ' Düzeltilmiş mesaj ');
+    await tester.pump();
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    expect(edits.savedText, 'Düzeltilmiş mesaj');
+  });
 
   testWidgets(
       'language menu changes and persists all five languages before sign-in',

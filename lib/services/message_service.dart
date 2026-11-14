@@ -58,6 +58,13 @@ class MessageService {
           .doc(messageId)
           .update({'reactions.$userId': emoji ?? FieldValue.delete()});
 
+  Future<void> editMessage(MessageModel message, String text) => _firestore
+      .collection('rooms')
+      .doc(message.roomId)
+      .collection('messages')
+      .doc(message.id)
+      .update({'text': text, 'editedAt': FieldValue.serverTimestamp()});
+
   Future<void> sendMessage(MessageModel message) async {
     final data = message.toMap()..['sentAt'] = FieldValue.serverTimestamp();
     await _firestore

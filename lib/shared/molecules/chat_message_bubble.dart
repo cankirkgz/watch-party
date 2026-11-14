@@ -33,10 +33,17 @@ class ChatMessageBubble extends StatefulWidget {
 class _ChatMessageBubbleState extends State<ChatMessageBubble> {
   String? _translation;
   String _provider = 'GPT';
-  bool _busy = false, _show = true;
+  Object? _translationRequest;
+  bool _show = true;
+  bool get _busy => _translationRequest != null;
+
   @override
   void initState() {
     super.initState();
+    _scheduleTranslation();
+  }
+
+  void _scheduleTranslation() {
     if (widget.autoTranslate &&
         !widget.isMine &&
         widget.message.type == MessageType.text) {
@@ -49,30 +56,34 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
   @override
   void didUpdateWidget(covariant ChatMessageBubble old) {
     super.didUpdateWidget(old);
-    if (old.targetLanguage != widget.targetLanguage) {
+    final textChanged = old.message.text != widget.message.text;
+    if (old.targetLanguage != widget.targetLanguage || textChanged) {
+      _translationRequest = null;
       _translation = null;
       _show = false;
+      if (textChanged) _scheduleTranslation();
     }
   }
 
   Future<void> _translate({bool device = false, bool silent = false}) async {
     if (_busy) return;
-    setState(() => _busy = true);
+    final request = Object();
+    setState(() => _translationRequest = request);
     try {
       final service = context.read<TranslationService>();
+      final message = widget.message;
       final target = widget.targetLanguage;
       final result = device
           ? await service.translate(
-              text: widget.message.text,
-              sourceLanguageCode: await service.detectLanguage(
-                  widget.message.text,
-                  fallback: widget.message.languageCode),
+              text: message.text,
+              sourceLanguageCode: await service.detectLanguage(message.text,
+                  fallback: message.languageCode),
               targetLanguageCode: target)
           : await service.translateMessage(
-              roomId: widget.message.roomId,
-              messageId: widget.message.id,
+              roomId: message.roomId,
+              messageId: message.id,
               targetLanguageCode: target);
-      if (mounted && target == widget.targetLanguage) {
+      if (mounted && _translationRequest == request) {
         setState(() {
           _translation = result;
           _provider = device ? 'Google · ML Kit' : 'GPT';
@@ -80,7 +91,7 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
         });
       }
     } catch (_) {
-      if (mounted && !silent) {
+      if (mounted && _translationRequest == request && !silent) {
         toast(
             context,
             l(
@@ -102,7 +113,9 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                     : 'GPT no está disponible. Reintenta o mantén pulsado el mensaje para traducir en el dispositivo.'));
       }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted && _translationRequest == request) {
+        setState(() => _translationRequest = null);
+      }
     }
   }
 
@@ -130,9 +143,75 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
     }
   }
 
+  bool get _canEdit =>
+      widget.isMine &&
+      widget.message.type == MessageType.text &&
+      widget.message.id.isNotEmpty;
+
+  Future<void> _editMessage() async {
+    final message = widget.message;
+    var draft = message.text;
+    final text = await showDialog<String>(
+      context: context,
+      builder: (c) => StatefulBuilder(
+        builder: (c, update) {
+          final trimmed = draft.trim();
+          final title = l(
+              c,
+              'Mesajı düzenle',
+              'Edit message',
+              'Редактировать сообщение',
+              'Nachricht bearbeiten',
+              'Editar mensaje');
+          return AlertDialog(
+            scrollable: true,
+            title: Text(title),
+            content: TextFormField(
+              key: const Key('edit-message-input'),
+              initialValue: message.text,
+              autofocus: true,
+              minLines: 2,
+              maxLines: 5,
+              maxLength: 2000,
+              onChanged: (value) => update(() => draft = value),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(c),
+                child: Text(MaterialLocalizations.of(c).cancelButtonLabel),
+              ),
+              FilledButton(
+                onPressed: trimmed.isEmpty || trimmed == message.text.trim()
+                    ? null
+                    : () => Navigator.pop(c, trimmed),
+                child: Text(l(
+                    c, 'Kaydet', 'Save', 'Сохранить', 'Speichern', 'Guardar')),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (text == null || !mounted) return;
+    try {
+      await context.read<MessageService>().editMessage(message, text);
+    } catch (_) {
+      if (!mounted) return;
+      toast(
+          context,
+          l(
+              context,
+              'Mesaj düzenlenemedi. Tekrar dene.',
+              'Could not edit the message. Try again.',
+              'Не удалось изменить сообщение. Попробуйте снова.',
+              'Die Nachricht konnte nicht bearbeitet werden. Versuche es erneut.',
+              'No se pudo editar el mensaje. Inténtalo de nuevo.'));
+    }
+  }
+
   Future<void> _actions() async {
     var expanded = false;
-    await showModalBottomSheet<void>(
+    final edit = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (c) => StatefulBuilder(
@@ -178,6 +257,13 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                               widget.onReply!(widget.message);
                             }),
                       if (widget.message.type == MessageType.text) ...[
+                        if (_canEdit)
+                          ListTile(
+                            leading: const Icon(Icons.edit_outlined),
+                            title: Text(l(c, 'Düzenle', 'Edit', 'Редактировать',
+                                'Bearbeiten', 'Editar')),
+                            onTap: () => Navigator.pop(c, true),
+                          ),
                         ListTile(
                             leading: const Icon(Icons.auto_awesome_rounded),
                             title: Text(l(
@@ -228,6 +314,7 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                 ),
               )),
     );
+    if (edit == true && mounted && _canEdit) await _editMessage();
   }
 
   @override
@@ -413,6 +500,22 @@ class _ChatMessageBubbleState extends State<ChatMessageBubble> {
                                                       style: TextStyle(
                                                           fontSize: 9,
                                                           color: muted)))),
+                                        if (m.editedAt != null)
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(right: 5),
+                                            child: Text(
+                                              l(
+                                                  context,
+                                                  'Düzenlendi',
+                                                  'Edited',
+                                                  'Изменено',
+                                                  'Bearbeitet',
+                                                  'Editado'),
+                                              style: TextStyle(
+                                                  fontSize: 9, color: muted),
+                                            ),
+                                          ),
                                         Text(
                                             '${m.sentAt.hour.toString().padLeft(2, '0')}:${m.sentAt.minute.toString().padLeft(2, '0')}',
                                             style: TextStyle(
